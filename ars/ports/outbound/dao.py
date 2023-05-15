@@ -14,29 +14,16 @@
 # limitations under the License.
 #
 
+"""DAO interface for accessing the database."""
 
-"""Used to define the location of the main FastAPI app object."""
+from hexkit.protocols.dao import (  # noqa: F401; pylint: disable=unused-import
+    DaoSurrogateId,
+    ResourceNotFoundError,
+)
 
-# flake8: noqa
-# pylint: skip-file
+from ars.core import models
 
-from typing import Any, Dict
+__all__ = ["AccessRequestDaoPort", "ResourceNotFoundError"]
 
-from fastapi import FastAPI
-
-from ars.adapters.inbound.http.openapi import get_openapi_schema
-from ars.adapters.inbound.http.routes import router
-
-app = FastAPI()
-app.include_router(router)
-
-
-def custom_openapi() -> Dict[str, Any]:
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi_schema(app)
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi  # type: ignore [assignment]
+# ports described by type aliases:
+AccessRequestDaoPort = DaoSurrogateId[models.AccessRequest, models.AccessRequestData]

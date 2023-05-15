@@ -14,29 +14,21 @@
 # limitations under the License.
 #
 
+"""Interface for the work package repository."""
 
-"""Used to define the location of the main FastAPI app object."""
+from abc import ABC, abstractmethod
 
-# flake8: noqa
-# pylint: skip-file
+from ghga_service_commons.auth.ghga import AuthContext
 
-from typing import Any, Dict
-
-from fastapi import FastAPI
-
-from ars.adapters.inbound.http.openapi import get_openapi_schema
-from ars.adapters.inbound.http.routes import router
-
-app = FastAPI()
-app.include_router(router)
+from ars.core.models import AccessRequestCreationData
 
 
-def custom_openapi() -> Dict[str, Any]:
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi_schema(app)
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
+class AccessRequestRepositoryPort(ABC):
+    """A repository for access requests."""
 
-
-app.openapi = custom_openapi  # type: ignore [assignment]
+    @abstractmethod
+    async def create(
+        self, *, creation_data: AccessRequestCreationData, auth_context: AuthContext
+    ) -> None:
+        """Create a work package and store it in the repository."""
+        ...

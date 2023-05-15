@@ -1,4 +1,7 @@
 #!/bin/bash
 
-# adapt to package name
-my-microservice
+set -a
+. <(python tests/fixtures/auth_keys.py)
+set +a
+
+ars

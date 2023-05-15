@@ -40,5 +40,5 @@ WORKDIR /home/appuser
 USER appuser
 # set environment
 ENV PYTHONUNBUFFERED=1
-# Please adapt to package name:
-ENTRYPOINT ["my-microservice"]
+
+ENTRYPOINT ["ars"]

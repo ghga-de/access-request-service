@@ -1,3 +1,14 @@
-# Please only mention the non-default settings here:
+host: 127.0.0.1
+port: 8080
+log_level: info
+workers: 1
+auto_reload: true
+cors_allowed_origins: []
+cors_allow_credentials: False
+cors_allowed_methods: []
+cors_allowed_headers: []
 
-language: Greek
+db_connection_str: "mongodb://mongodb:27017"
+db_name: "dev-db"
+
+auth_key: "{}"

@@ -13,6 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Short description of package"""  # Please adapt to package
+"""Config Parameter Modeling and Parsing"""
 
-__version__ = "0.1.0"
+from ghga_service_commons.api import ApiConfigBase
+from ghga_service_commons.auth.ghga import AuthConfig
+from hexkit.config import config_from_yaml
+from hexkit.providers.mongodb import MongoDbConfig
+
+from ars.core.repository import AccessRequestConfig
+
+
+@config_from_yaml(prefix="ars")
+class Config(ApiConfigBase, AuthConfig, MongoDbConfig, AccessRequestConfig):
+    """Config parameters and their defaults."""
+
+    service_name: str = "ars"
+    db_name: str = "access-requests"

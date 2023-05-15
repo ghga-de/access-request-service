@@ -14,29 +14,14 @@
 # limitations under the License.
 #
 
-
-"""Used to define the location of the main FastAPI app object."""
-
-# flake8: noqa
-# pylint: skip-file
-
-from typing import Any, Dict
-
-from fastapi import FastAPI
-
-from ars.adapters.inbound.http.openapi import get_openapi_schema
-from ars.adapters.inbound.http.routes import router
-
-app = FastAPI()
-app.include_router(router)
+from ghga_service_commons.utils.jwt_helpers import generate_jwk
 
 
-def custom_openapi() -> Dict[str, Any]:
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi_schema(app)
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
+def print_auth_key_env() -> None:
+    """Print environment setting for the auth key."""
+    auth_key = generate_jwk().export(private_key=False)
+    print(f"ARS_AUTH_KEY={auth_key}")
 
 
-app.openapi = custom_openapi  # type: ignore [assignment]
+if __name__ == "__main__":
+    print_auth_key_env()

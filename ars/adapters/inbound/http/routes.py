@@ -12,31 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 
-"""Used to define the location of the main FastAPI app object."""
+"""
+Module containing the main FastAPI router and all route functions.
+"""
 
-# flake8: noqa
-# pylint: skip-file
+import logging
 
-from typing import Any, Dict
+from fastapi import APIRouter
 
-from fastapi import FastAPI
+__all__ = ["router"]
 
-from ars.adapters.inbound.http.openapi import get_openapi_schema
-from ars.adapters.inbound.http.routes import router
+log = logging.getLogger(__name__)
 
-app = FastAPI()
-app.include_router(router)
-
-
-def custom_openapi() -> Dict[str, Any]:
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi_schema(app)
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi  # type: ignore [assignment]
+router = APIRouter()
