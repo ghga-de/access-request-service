@@ -3,6 +3,38 @@
   "description": "Modifies the orginal Settings class provided by the user",
   "type": "object",
   "properties": {
+    "access_requests_collection": {
+      "title": "Access Requests Collection",
+      "default": "accessRequests",
+      "env_names": [
+        "ars_access_requests_collection"
+      ],
+      "type": "string"
+    },
+    "access_upfront_max_days": {
+      "title": "Access Upfront Max Days",
+      "default": 180,
+      "env_names": [
+        "ars_access_upfront_max_days"
+      ],
+      "type": "integer"
+    },
+    "access_grant_min_days": {
+      "title": "Access Grant Min Days",
+      "default": 7,
+      "env_names": [
+        "ars_access_grant_min_days"
+      ],
+      "type": "integer"
+    },
+    "access_grant_max_days": {
+      "title": "Access Grant Max Days",
+      "default": 730,
+      "env_names": [
+        "ars_access_grant_max_days"
+      ],
+      "type": "integer"
+    },
     "db_connection_str": {
       "title": "Db Connection Str",
       "description": "MongoDB connection string. Might include credentials. For more information see: https://naiveskill.com/mongodb-connection-string/",

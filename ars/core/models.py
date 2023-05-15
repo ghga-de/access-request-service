@@ -16,11 +16,18 @@
 """Defines dataclasses for business-logic data as well as request/reply models for use
 in the API."""
 
+from enum import Enum
+from typing import Optional
 
 from ghga_service_commons.utils.utc_dates import DateTimeUTC
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
-__all__ = ["AccessRequestCreationData", "AccessRequestData", "AccessRequest"]
+__all__ = [
+    "AccessRequest",
+    "AccessRequestCreationData",
+    "AccessRequestData",
+    "AccessRequestStatus",
+]
 
 
 class BaseDto(BaseModel):
@@ -31,21 +38,54 @@ class BaseDto(BaseModel):
         frozen = True
 
 
+class AccessRequestStatus(str, Enum):
+    """The status of an access request."""
+
+    ALLOWED = "allowed"
+    DENIED = "denied"
+    PENDING = "pending"
+
+
 class AccessRequestCreationData(BaseDto):
     """All data necessary to create an access request."""
 
     user_id: str
     dataset_id: str
-    # ... add remaining fields
+    email: EmailStr = Field(
+        default=..., description="Contact e-mail address of the requester"
+    )
+    request_text: str = Field(
+        default=..., description="Text note submitted with the request"
+    )
+    access_starts: DateTimeUTC = Field(
+        default=..., description="Requested start date of access"
+    )
+    access_ends: DateTimeUTC = Field(
+        default=..., description="Requested end date of access"
+    )
 
 
 class AccessRequestData(AccessRequestCreationData):
     """All data that describes an access request."""
 
+    full_user_name: str = Field(
+        default=...,
+        description="The requester's full name including academic title",
+    )
     request_created: DateTimeUTC = Field(
         default=..., description="Creation date of the access request"
     )
-    # ... add remaining fields
+    status: AccessRequestStatus = Field(
+        default=AccessRequestStatus.PENDING,
+        description="The status of this access request",
+    )
+    status_changed: Optional[DateTimeUTC] = Field(
+        default=None, description="Last change date of the status of this request"
+    )
+    changed_by: Optional[str] = Field(
+        default=None,
+        description="The ID of the data steward who made the status change",
+    )
 
 
 class AccessRequest(AccessRequestData):
