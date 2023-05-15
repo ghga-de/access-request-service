@@ -148,7 +148,7 @@ ACCESS_REQUESTS = [
 ]
 
 
-class AccessRequestDaoDummy(AccessRequestDaoPort):  # type: ignore
+class AccessRequestDaoDummy(AccessRequestDaoPort):  # pyright: ignore
     """Dummy AccessRequest DAO for testing."""
 
     last_upsert: Optional[AccessRequest] = None
