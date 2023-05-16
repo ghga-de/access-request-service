@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+"""Test the access request repository"""
+
 from collections.abc import AsyncIterator, Mapping
 from datetime import timedelta
 from typing import Any, Optional
@@ -324,7 +326,7 @@ async def test_can_get_all_own_requests_as_requester():
     requests = await repository.get(auth_context=auth_context_doe)
     assert 0 < len(requests) < len(ACCESS_REQUESTS)
     assert requests == [
-        request
+        request.copy(update={"changed_by": None})  # data steward is hidden
         for request in ACCESS_REQUESTS
         if request.full_user_name == "Dr. John Doe"
     ]
@@ -361,7 +363,7 @@ async def test_data_steward_can_get_requests_for_specific_dataset():
     )
     assert len(requests) == 1
     assert requests == [
-        request
+        request.copy(update={"changed_by": None})  # data steward is hidden
         for request in ACCESS_REQUESTS
         if request.dataset_id == "another-dataset"
     ]

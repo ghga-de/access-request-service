@@ -29,13 +29,11 @@ from ars.core.models import (
     AccessRequestData,
     AccessRequestStatus,
 )
+from ars.core.roles import DATA_STEWARD_ROLE
 from ars.ports.inbound.repository import AccessRequestRepositoryPort
 from ars.ports.outbound.dao import AccessRequestDaoPort, ResourceNotFoundError
 
 __all__ = ["AccessRequestConfig", "AccessRequestRepository"]
-
-
-DATA_STEWARD_ROLE = "data_steward"
 
 
 class AccessRequestConfig(BaseSettings):
@@ -130,7 +128,8 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         if not auth_context.id:
             raise self.AccessRequestError("Not authorized")
-        if not has_role(auth_context, DATA_STEWARD_ROLE):
+        is_data_steward = has_role(auth_context, DATA_STEWARD_ROLE)
+        if not is_data_steward:
             if user_id is None:
                 user_id = auth_context.id
             elif user_id != auth_context.id:
@@ -144,7 +143,12 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         if status is not None:
             mapping["status"] = status
 
-        return [request async for request in self._dao.find_all(mapping=mapping)]
+        requests = [request async for request in self._dao.find_all(mapping=mapping)]
+
+        if not is_data_steward:
+            requests = list(map(self._hide_internals, requests))
+
+        return requests
 
     async def update(
         self,
@@ -185,3 +189,8 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         )
 
         await self._dao.update(modified_request)
+
+    @staticmethod
+    def _hide_internals(request: AccessRequest) -> AccessRequest:
+        """Blank out internal information in the request"""
+        return request.copy(update={"changed_by": None})
