@@ -171,13 +171,14 @@ async def test_get_access_requests(
     assert isinstance(requests, list)
     assert len(requests) == 2
     request = requests[0]
-    assert request["id"] == access_request_id
-    assert request["user_id"] == "id-of-john-doe@ghga.de"
+    # last made request comes first
+    assert request["id"] == another_access_request_id
+    assert request["user_id"] == "id-of-rod-steward@ghga.de"
     assert request["dataset_id"] == "some-dataset"
     assert request["status"] == "pending"
     request = requests[1]
-    assert request["id"] == another_access_request_id
-    assert request["user_id"] == "id-of-rod-steward@ghga.de"
+    assert request["id"] == access_request_id
+    assert request["user_id"] == "id-of-john-doe@ghga.de"
     assert request["dataset_id"] == "some-dataset"
     assert request["status"] == "pending"
 

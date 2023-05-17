@@ -17,6 +17,7 @@
 """A repository for access requests."""
 
 from datetime import timedelta
+from operator import attrgetter
 from typing import Any, Optional
 
 from ghga_service_commons.auth.ghga import AuthContext, has_role
@@ -144,6 +145,9 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             mapping["status"] = status
 
         requests = [request async for request in self._dao.find_all(mapping=mapping)]
+
+        # latests requests should be served first
+        requests.sort(key=attrgetter("request_created"), reverse=True)
 
         if not is_data_steward:
             requests = list(map(self._hide_internals, requests))
