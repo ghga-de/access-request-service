@@ -25,7 +25,7 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Response
 from fastapi.exceptions import HTTPException
 
-from ars.adapters.inbound.http.auth import (
+from ars.adapters.inbound.fastapi_.auth import (
     AuthContext,
     require_steward_context,
     require_user_context,
