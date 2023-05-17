@@ -24,8 +24,8 @@ from typing import Any, Dict
 
 from fastapi import FastAPI
 
-from ars.adapters.inbound.http.openapi import get_openapi_schema
-from ars.adapters.inbound.http.routes import router
+from ars.adapters.inbound.fastapi_.openapi import get_openapi_schema
+from ars.adapters.inbound.fastapi_.routes import router
 
 app = FastAPI()
 app.include_router(router)
