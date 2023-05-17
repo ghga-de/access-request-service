@@ -40,10 +40,6 @@ __all__ = ["AccessRequestConfig", "AccessRequestRepository"]
 class AccessRequestConfig(BaseSettings):
     """Config parameters needed for the AccessRequestRepository."""
 
-    access_requests_collection: str = Field(
-        ...,
-        description="The name of the database collection for access requests",
-    )
     access_upfront_max_days: int = Field(
         ..., description="The maximum lead time in days to request access grants"
     )

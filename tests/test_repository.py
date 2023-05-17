@@ -70,7 +70,6 @@ auth_context_steward = AuthContext(
 
 
 config = AccessRequestConfig(
-    access_requests_collection="dummy-collection",
     access_upfront_max_days=365,
     access_grant_min_days=30,
     access_grant_max_days=2 * 365,

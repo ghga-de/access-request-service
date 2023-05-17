@@ -47,8 +47,6 @@ ars --help
 ### Parameters
 
 The service requires the following configuration parameters:
-- **`access_requests_collection`** *(string)*: Default: `accessRequests`.
-
 - **`access_upfront_max_days`** *(integer)*: Default: `180`.
 
 - **`access_grant_min_days`** *(integer)*: Default: `7`.
