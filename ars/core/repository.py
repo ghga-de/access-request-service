@@ -178,7 +178,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             raise self.AccessRequestError("Status cannot be reverted")
 
         # Should set the status in the claims repository here
-        # and proceed only if this succeeds.
+        # if it has been approved and proceed only if this succeeds.
 
         modified_request = request.copy(
             update={
