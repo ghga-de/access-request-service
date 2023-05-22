@@ -11,4 +11,9 @@ cors_allowed_headers: []
 db_connection_str: "mongodb://mongodb:27017"
 db_name: "dev-db"
 
+service_instance_id: 001
+kafka_servers: ["kafka:9092"]
+
+data_steward_email: "helpdesk@ghga.de"
+
 auth_key: "{}"
