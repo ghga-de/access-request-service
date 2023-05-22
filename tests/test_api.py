@@ -375,9 +375,9 @@ async def test_patch_access_request(
         assert response.status_code == 204
 
     # check that access has been granted
-    request = httpx_mock.get_request()
-    assert request
-    validity = json.loads(request.content)
+    grant_request = httpx_mock.get_request()
+    assert grant_request
+    validity = json.loads(grant_request.content)
     # validity period may start a bit later because integration tests can be slow
     assert_same_datetime(validity["valid_from"], CREATION_DATA["access_starts"], 300)
     assert validity["valid_until"] == CREATION_DATA["access_ends"]
