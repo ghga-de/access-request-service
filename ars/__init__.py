@@ -16,3 +16,13 @@
 """Access Request Service"""
 
 __version__ = "0.1.0"
+
+
+try:  # temporary monkeypatch for testing
+    import typing
+
+    from typing_extensions import Literal
+
+    typing.Literal = Literal  # type: ignore
+except ImportError:
+    pass
