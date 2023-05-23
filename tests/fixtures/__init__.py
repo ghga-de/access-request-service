@@ -37,7 +37,7 @@ from ars.main import (  # pylint: disable=import-outside-toplevel
 
 __all__ = [
     "AUTH_KEY_PAIR",
-    "AUTH_CLAIMS_JOE",
+    "AUTH_CLAIMS_DOE",
     "AUTH_CLAIMS_STEWARD",
     "fixture_auth_headers_doe",
     "fixture_auth_headers_steward",

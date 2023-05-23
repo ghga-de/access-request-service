@@ -17,10 +17,12 @@
 """Test the access grant adapter."""
 
 import json
+from typing import AsyncGenerator
 
 import httpx
 from ghga_service_commons.utils.utc_dates import DateTimeUTC
-from pytest import fixture, mark, raises
+from pytest import mark, raises
+from pytest_asyncio import fixture as async_fixture
 from pytest_httpx import HTTPXMock
 
 from ars.adapters.outbound.http import AccessGrantsAdapter, AccessGrantsConfig
@@ -37,11 +39,12 @@ VALID_UNTIL = datetime_utc(2020, 12, 31, 23, 59)
 URL = f"{DOWNLOAD_ACCESS_URL}/users/{USER_ID}/datasets/{DATASET_ID}"
 
 
-@fixture(name="access_grant")
-def fixture_access_grant() -> AccessGrantsAdapter:
+@async_fixture(name="access_grant")
+async def fixture_access_grant() -> AsyncGenerator[AccessGrantsAdapter, None]:
     """Get configured access grant test adapter."""
     config = AccessGrantsConfig(download_access_url=DOWNLOAD_ACCESS_URL)
-    return AccessGrantsAdapter(config=config)
+    async with AccessGrantsAdapter.construct(config=config) as adapter:
+        yield adapter
 
 
 @mark.asyncio

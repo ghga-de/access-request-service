@@ -16,6 +16,9 @@
 
 """Outbound HTTP calls"""
 
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
 import httpx
 from ghga_service_commons.utils.utc_dates import DateTimeUTC
 from pydantic import BaseModel, BaseSettings, Field, validator
@@ -62,9 +65,19 @@ class AccessGrantsConfig(BaseSettings):
 class AccessGrantsAdapter(AccessGrantsPort):
     """An adapter for granting access permissions for datasets."""
 
-    def __init__(self, *, config: AccessGrantsConfig):
+    def __init__(self, *, config: AccessGrantsConfig, client: httpx.AsyncClient):
         """Configure the access grant adapter."""
         self._url = config.download_access_url
+        self._client = client
+
+    @classmethod
+    @asynccontextmanager
+    async def construct(
+        cls, *, config: AccessGrantsConfig
+    ) -> AsyncGenerator["AccessGrantsAdapter", None]:
+        """Setup AccessGrantsAdapter with the given config."""
+        async with httpx.AsyncClient() as client:
+            yield cls(config=config, client=client)
 
     async def grant_download_access(
         self,
@@ -81,13 +94,12 @@ class AccessGrantsAdapter(AccessGrantsPort):
             raise self.AccessGrantsInvalidPeriodError(
                 "Invalid validity period"
             ) from error
-        async with httpx.AsyncClient() as client:
-            try:
-                response = await client.post(
-                    url, content=validity.json(), timeout=TIMEOUT
-                )
-            except httpx.RequestError as error:
-                raise self.AccessGrantsError(f"HTTP request error: {error}")
+        try:
+            response = await self._client.post(
+                url, content=validity.json(), timeout=TIMEOUT
+            )
+        except httpx.RequestError as error:
+            raise self.AccessGrantsError(f"HTTP request error: {error}")
         if response.status_code != httpx.codes.NO_CONTENT:
             raise self.AccessGrantsError(
                 f"Unexpected HTTP response status code {response.status_code}"
