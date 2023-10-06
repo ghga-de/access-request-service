@@ -17,10 +17,7 @@
 
 """Used to define the location of the main FastAPI app object."""
 
-# flake8: noqa
-# pylint: skip-file
-
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import FastAPI
 
@@ -31,7 +28,8 @@ app = FastAPI()
 app.include_router(router)
 
 
-def custom_openapi() -> Dict[str, Any]:
+def custom_openapi() -> dict[str, Any]:
+    """Generate a custom OpenAPI schema for the service."""
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi_schema(app)
@@ -39,4 +37,4 @@ def custom_openapi() -> Dict[str, Any]:
     return app.openapi_schema
 
 
-app.openapi = custom_openapi  # type: ignore [assignment]
+app.openapi = custom_openapi  # type: ignore[method-assign]
