@@ -23,7 +23,7 @@ classifiers = [
     "Intended Audience :: Developers",
 ]
 dependencies = [
-    "ghga-service-commons[api,auth]>=1.0.1",
+    "ghga-service-commons[api,auth]>=1.1.0",
     "ghga-event-schemas~=1.0.0",
     "hexkit[mongodb,akafka]>=0.11.0",
     "httpx>=0.23.3",
