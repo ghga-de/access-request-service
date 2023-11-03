@@ -23,9 +23,6 @@ from fastapi import FastAPI
 
 from ars.adapters.inbound.fastapi_.configure import get_openapi_schema
 from ars.adapters.inbound.fastapi_.routes import router
-from ars.config import Config
-
-CONFIG = Config()  # type: ignore
 
 app = FastAPI()
 app.include_router(router)
@@ -35,7 +32,7 @@ def custom_openapi() -> dict[str, Any]:
     """Generate a custom OpenAPI schema for the service."""
     if app.openapi_schema:
         return app.openapi_schema
-    openapi_schema = get_openapi_schema(app, config=CONFIG)
+    openapi_schema = get_openapi_schema(app)
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 

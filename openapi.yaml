@@ -256,7 +256,5 @@ paths:
       summary: health
       tags:
       - AccessRequests
-servers:
-- url: /
 tags:
 - name: AccessRequests
