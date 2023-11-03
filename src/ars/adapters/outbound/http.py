@@ -21,7 +21,8 @@ from contextlib import asynccontextmanager
 
 import httpx
 from ghga_service_commons.utils.utc_dates import DateTimeUTC
-from pydantic import BaseModel, BaseSettings, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic_settings import BaseSettings
 
 from ars.ports.outbound.access_grants import AccessGrantsPort
 
@@ -33,17 +34,17 @@ TIMEOUT = 60
 class ClaimValidity(BaseModel):
     """Start and end dates for validating claims."""
 
-    class Config:
-        extra = "forbid"
-        frozen = True
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     valid_from: DateTimeUTC = Field(
-        ..., description="Start date of validity", example="2023-01-01T00:00:00Z"
+        ..., description="Start date of validity", examples=["2023-01-01T00:00:00Z"]
     )
     valid_until: DateTimeUTC = Field(
-        ..., description="End date of validity", example="2023-12-31T23:59:59Z"
+        ..., description="End date of validity", examples=["2023-12-31T23:59:59Z"]
     )
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("valid_until")
     @classmethod
     def period_is_valid(cls, value, values):
@@ -58,7 +59,7 @@ class AccessGrantsConfig(BaseSettings):
 
     download_access_url: str = Field(
         ...,
-        example="http://127.0.0.1/download-access",
+        examples=["http://127.0.0.1/download-access"],
         description="URL pointing to the internal download access API.",
     )
 
@@ -97,7 +98,7 @@ class AccessGrantsAdapter(AccessGrantsPort):
             ) from error
         try:
             response = await self._client.post(
-                url, content=validity.json(), timeout=TIMEOUT
+                url, content=validity.model_dump_json(), timeout=TIMEOUT
             )
         except httpx.RequestError as error:
             raise self.AccessGrantsError(f"HTTP request error: {error}") from error

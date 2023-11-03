@@ -11,7 +11,7 @@ cors_allowed_headers: []
 db_connection_str: "mongodb://mongodb:27017"
 db_name: "dev-db"
 
-service_instance_id: 001
+service_instance_id: "001"
 kafka_servers: ["kafka:9092"]
 
 download_access_url: "http://127.0.0.1:8080/download-access"
