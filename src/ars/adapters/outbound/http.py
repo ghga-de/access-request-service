@@ -21,7 +21,7 @@ from contextlib import asynccontextmanager
 
 import httpx
 from ghga_service_commons.utils.utc_dates import DateTimeUTC
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic_settings import BaseSettings
 
 from ars.ports.outbound.access_grants import AccessGrantsPort
@@ -43,15 +43,13 @@ class ClaimValidity(BaseModel):
         ..., description="End date of validity", examples=["2023-12-31T23:59:59Z"]
     )
 
-    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
-    @validator("valid_until")
-    @classmethod
-    def period_is_valid(cls, value, values):
+    @model_validator(mode="after")
+    def period_is_valid(self):
         """Validate that the dates of the period are in the right order."""
-        if "valid_from" in values and value <= values["valid_from"]:
+        if self.valid_until <= self.valid_from:
             raise ValueError("'valid_until' must be later than 'valid_from'")
-        return value
+
+        return self
 
 
 class AccessGrantsConfig(BaseSettings):

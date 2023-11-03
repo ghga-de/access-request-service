@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-"""Module hosting the dependency injection container."""
+"""Module hosting the dependency injection framework."""
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
