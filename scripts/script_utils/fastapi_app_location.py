@@ -21,7 +21,7 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from ars.adapters.inbound.fastapi_.openapi import get_openapi_schema
+from ars.adapters.inbound.fastapi_.configure import get_openapi_schema
 from ars.adapters.inbound.fastapi_.routes import router
 
 app = FastAPI()
