@@ -457,7 +457,7 @@ async def test_can_get_all_own_requests_as_requester():
     assert 0 < len(requests) < len(ACCESS_REQUESTS)
     assert requests == sorted(
         (
-            request.copy(update={"changed_by": None})  # data steward is hidden
+            request.model_copy(update={"changed_by": None})  # data steward is hidden
             for request in ACCESS_REQUESTS
             if request.full_user_name == "Dr. John Doe"
         ),
@@ -497,7 +497,7 @@ async def test_data_steward_can_get_requests_for_specific_dataset():
     )
     assert len(requests) == 1
     assert requests == [
-        request.copy(update={"changed_by": None})  # data steward is hidden
+        request.model_copy(update={"changed_by": None})  # data steward is hidden
         for request in ACCESS_REQUESTS
         if request.dataset_id == "another-dataset"
     ]
