@@ -22,7 +22,7 @@ from ghga_service_commons.utils.jwt_helpers import generate_jwk
 def print_auth_key_env() -> None:
     """Print environment setting for the auth key."""
     auth_key = generate_jwk().export(private_key=False)
-    print(f"ARS_AUTH_KEY={auth_key}")
+    print(f"ARS_AUTH_KEY={auth_key!r}")
 
 
 if __name__ == "__main__":
