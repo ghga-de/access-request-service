@@ -143,7 +143,7 @@ The service requires the following configuration parameters:
 
 - **`auth_map_claims`** *(object)*: A mapping of claims to attributes in the GHGA auth context. Can contain additional properties. Default: `{}`.
 
-  - **Additional Properties** *(string)*
+  - **Additional properties** *(string)*
 
 - **`host`** *(string)*: IP of the host. Default: `"127.0.0.1"`.
 
