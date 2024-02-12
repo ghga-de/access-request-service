@@ -21,7 +21,7 @@ from datetime import timedelta
 from operator import attrgetter
 from typing import Any, NamedTuple, Optional
 
-from ghga_service_commons.auth.ghga import AcademicTitle, AuthContext
+from ghga_service_commons.auth.ghga import AcademicTitle, AuthContext, UserStatus
 from ghga_service_commons.utils.utc_dates import UTCDatetime, now_as_utc, utc_datetime
 from pytest import mark, raises
 
@@ -47,9 +47,11 @@ auth_context_doe = AuthContext(
     name="John Doe",
     email="john@home.org",
     title=AcademicTitle.DR,
+    ext_id=None,
     role=None,
     iat=IAT,
     exp=EXP,
+    status=UserStatus.ACTIVE,
 )
 
 
@@ -58,9 +60,11 @@ auth_context_steward = AuthContext(
     name="Rod Steward",
     email="steward@ghga.de",
     title=None,
+    ext_id=None,
     role="data_steward@ghga.de",
     iat=IAT,
     exp=EXP,
+    status=UserStatus.ACTIVE,
 )
 
 
