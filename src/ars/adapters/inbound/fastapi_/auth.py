@@ -21,7 +21,7 @@ from typing import Annotated
 
 from fastapi import Depends, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from ghga_service_commons.auth.ghga import AuthContext, has_role, is_active
+from ghga_service_commons.auth.ghga import AuthContext, has_role
 from ghga_service_commons.auth.policies import require_auth_context_using_credentials
 
 from ars.adapters.inbound.fastapi_ import dummies
@@ -37,9 +37,7 @@ async def _require_user_context(
     auth_provider: dummies.AuthProviderDummy,
 ) -> AuthContext:
     """Require an active GHGA auth context using FastAPI."""
-    return await require_auth_context_using_credentials(
-        credentials, auth_provider, is_active
-    )
+    return await require_auth_context_using_credentials(credentials, auth_provider)
 
 
 is_steward = partial(has_role, role=DATA_STEWARD_ROLE)

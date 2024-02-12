@@ -37,9 +37,7 @@ from pytest_httpx import HTTPXMock
 
 from .fixtures import (  # noqa: F401
     fixture_auth_headers_doe,
-    fixture_auth_headers_doe_inactive,
     fixture_auth_headers_steward,
-    fixture_auth_headers_steward_inactive,
     fixture_client,
     non_mocked_hosts,
 )
@@ -159,17 +157,12 @@ async def test_create_access_request(
 async def test_create_access_request_unauthorized(
     client: AsyncTestClient,
     auth_headers_doe: dict[str, str],
-    auth_headers_doe_inactive: dict[str, str],
 ):
     """Test that creating an access request needs authorization."""
     # test without authentication
     response = await client.post("/access-requests", json=CREATION_DATA)
     assert response.status_code == 403
-    # test with inactive user
-    response = await client.post(
-        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe_inactive
-    )
-    assert response.status_code == 403
+
     # test creating an access request for another user
     response = await client.post(
         "/access-requests",
@@ -256,16 +249,10 @@ async def test_get_access_requests(
 
 
 @mark.asyncio
-async def test_get_access_requests_unauthorized(
-    client: AsyncTestClient, auth_headers_doe_inactive: dict[str, str]
-):
+async def test_get_access_requests_unauthorized(client: AsyncTestClient):
     """Test that getting access requests needs authorization."""
     # test unauthenticated
     response = await client.get("/access-requests")
-    assert response.status_code == 403
-
-    # test with inactive user
-    response = await client.get("/access-requests", headers=auth_headers_doe_inactive)
     assert response.status_code == 403
 
 

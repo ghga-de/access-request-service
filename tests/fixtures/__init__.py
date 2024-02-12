@@ -36,8 +36,6 @@ __all__ = [
     "AUTH_CLAIMS_STEWARD",
     "fixture_auth_headers_doe",
     "fixture_auth_headers_steward",
-    "fixture_auth_headers_doe_inactive",
-    "fixture_auth_headers_steward_inactive",
     "fixture_client",
     "headers_for_token",
     "non_mocked_hosts",
@@ -79,22 +77,6 @@ def fixture_auth_headers_doe() -> dict[str, str]:
 def fixture_auth_headers_steward() -> dict[str, str]:
     """Get auth headers for a data steward granting access"""
     token = sign_and_serialize_token(AUTH_CLAIMS_STEWARD, AUTH_KEY_PAIR)
-    return headers_for_token(token)
-
-
-@fixture(name="auth_headers_doe_inactive")
-def fixture_auth_headers_doe_inactive() -> dict[str, str]:
-    """Get auth headers for an inactive user requesting access"""
-    claims_inactive = {**AUTH_CLAIMS_DOE, "status": "inactive"}
-    token = sign_and_serialize_token(claims_inactive, AUTH_KEY_PAIR)
-    return headers_for_token(token)
-
-
-@fixture(name="auth_headers_steward_inactive")
-def fixture_auth_headers_steward_inactive() -> dict[str, str]:
-    """Get auth headers for an inactive data steward granting access"""
-    claims_inactive = {**AUTH_CLAIMS_STEWARD, "status": "inactive"}
-    token = sign_and_serialize_token(claims_inactive, AUTH_KEY_PAIR)
     return headers_for_token(token)
 
 
