@@ -198,7 +198,6 @@
     },
     "auth_check_claims": {
       "default": {
-        "id": null,
         "name": null,
         "email": null,
         "iat": null,
