@@ -7,10 +7,7 @@ Access Request Service
 
 ## Description
 
-<!-- Please provide a short overview of the features of this service. -->
-
-Here you should provide a short summary of the purpose of this microservice.
-
+The access request service manages access requests and serves as a backend for the GHGA Data Portal.
 
 ## Installation
 
@@ -201,7 +198,7 @@ The service requires the following configuration parameters:
 
   - **Items** *(string)*
 
-- **`auth_check_claims`** *(object)*: A dict of all GHGA internal claims that shall be verified. Default: `{"name": null, "email": null, "iat": null, "exp": null}`.
+- **`auth_check_claims`** *(object)*: A dict of all GHGA internal claims that shall be verified. Default: `{"id": null, "name": null, "email": null, "iat": null, "exp": null}`.
 
 - **`auth_map_claims`** *(object)*: A mapping of claims to attributes in the GHGA auth context. Can contain additional properties. Default: `{}`.
 
