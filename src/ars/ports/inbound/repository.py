@@ -94,8 +94,8 @@ class AccessRequestRepositoryPort(ABC):
         Only data stewards may use this method.
 
         Raises an AccessRequestAuthorizationError if the user is not authorized.
-        raises an AccessRequestNotFoundError if the specified request was not found.
-        raises an AccessRequestInvalidState error is the specified state is invalid.
+        Raises an AccessRequestNotFoundError if the specified request was not found.
+        Raises an AccessRequestInvalidState error is the specified state is invalid.
         Raises an AccessRequestServerError if the grant could not be registered.
         """
         ...

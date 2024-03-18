@@ -71,23 +71,43 @@ The service requires the following configuration parameters:
   ```
 
 
-- **`notification_event_topic`** *(string)*: Name of the topic used for notification events.
+- **`access_request_events_topic`** *(string)*: The topic used for events related to access requests.
 
 
   Examples:
 
   ```json
-  "notifications"
+  "access_requests"
   ```
 
 
-- **`notification_event_type`** *(string)*: The type used for notification events.
+- **`access_request_created_type`** *(string)*: The type to use for 'access request created' events.
 
 
   Examples:
 
   ```json
-  "notification"
+  "access_request_created"
+  ```
+
+
+- **`access_request_allowed_type`** *(string)*: The type to use for 'access request allowed' events.
+
+
+  Examples:
+
+  ```json
+  "access_request_allowed"
+  ```
+
+
+- **`access_request_denied_type`** *(string)*: The type to use for 'access request denied' events.
+
+
+  Examples:
+
+  ```json
+  "access_request_denied"
   ```
 
 
