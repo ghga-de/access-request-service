@@ -54,7 +54,7 @@ class EventPubTranslatorConfig(BaseSettings):
 
 
 class EventPubTranslator(EventPublisherPort):
-    """Translator from NotificationEmitterPort to EventPublisherProtocol."""
+    """Translator from EventPublisherPort to EventPublisherProtocol."""
 
     def __init__(
         self,

@@ -85,7 +85,7 @@ async def test_create_access_request(
     kafka = joint_fixture.kafka
     topic = joint_fixture.config.access_request_events_topic
     async with kafka.record_events(in_topic=topic):
-        pass  # skip previous notifications
+        pass  # skip previous events
     async with kafka.record_events(in_topic=topic) as recorder:
         response = await joint_fixture.rest_client.post(
             "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
@@ -319,7 +319,7 @@ async def test_patch_access_request(
     kafka = joint_fixture.kafka
     topic = joint_fixture.config.access_request_events_topic
     async with kafka.record_events(in_topic=topic):
-        pass  # skip previous notifications
+        pass  # skip previous events
     async with kafka.record_events(in_topic=topic) as recorder:
         response = await joint_fixture.rest_client.patch(
             f"/access-requests/{access_request_id}",
