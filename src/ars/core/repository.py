@@ -227,7 +227,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         # Emit events that communicate the fate of the access request
         if status == AccessRequestStatus.DENIED:
             await self._event_publisher.publish_request_denied(request=request)
-        elif status == AccessRequestStatus.DENIED:
+        elif status == AccessRequestStatus.ALLOWED:
             await self._event_publisher.publish_request_allowed(request=request)
 
     @staticmethod

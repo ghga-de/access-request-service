@@ -100,6 +100,13 @@ def fixture_auth_headers_steward() -> dict[str, str]:
     return headers_for_token(token)
 
 
+class AccessRequestDetails(NamedTuple):
+    """Hashable version of the AccessRequestDetails event schema"""
+
+    user_id: str
+    dataset_id: str
+
+
 class JointFixture(NamedTuple):
     """Joint fixture object."""
 
