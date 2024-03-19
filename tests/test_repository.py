@@ -16,6 +16,7 @@
 
 """Test the access request repository"""
 
+from collections import defaultdict
 from collections.abc import AsyncIterator, Mapping
 from datetime import timedelta
 from operator import attrgetter
@@ -193,37 +194,37 @@ class AccessRequestDaoDummy(AccessRequestDaoPort):  # pyright: ignore
 class EventPublisherDummy(EventPublisherPort):
     """Dummy event publisher for testing."""
 
-    events: dict[AccessRequestDetails, str]
+    events: dict[AccessRequestDetails, list[str]]
 
     def reset(self) -> None:
         """Reset the recorded events."""
-        self.events = {}
+        self.events = defaultdict(list)
 
     @property
     def num_events(self):
         """Get total number of recorded events."""
         return len(self.events)
 
-    def state_for(self, request: AccessRequest) -> str:
-        """Get the state that was used in the published event."""
+    def status_for(self, request: AccessRequest) -> list[str]:
+        """Get the statuses used in the events published for a given request."""
         details = AccessRequestDetails(
             user_id=request.user_id, dataset_id=request.dataset_id
         )
         try:
-            state = self.events[details]
+            status = self.events[details]
         except KeyError as err:
             raise RuntimeError(
                 f"No events recorded for request with user id '{details.user_id}'"
                 + f" and dataset id '{details.dataset_id}'"
             ) from err
-        return state
+        return status
 
     def _record_request(self, *, request: AccessRequest, request_state: str):
         """Record a request as either created, allowed, or denied for a user and dataset."""
         details = AccessRequestDetails(
             user_id=request.user_id, dataset_id=request.dataset_id
         )
-        self.events[details] = request_state
+        self.events[details].append(request_state)
 
     async def publish_request_allowed(self, *, request: AccessRequest) -> None:
         """Mark an access request as allowed via event publish."""
@@ -321,8 +322,8 @@ async def test_can_create_request():
     assert event_publisher.num_events == 1
 
     # the 'publish_request_created' method should have been called
-    request_state = event_publisher.state_for(request=request)
-    assert request_state == "created"
+    request_states = event_publisher.status_for(request=request)
+    assert request_states[0] == "created"
 
     assert access_grants.last_grant == "nothing granted so far"
 
@@ -553,8 +554,8 @@ async def test_set_status_to_allowed():
     assert changed_dict == original_dict
 
     assert event_publisher.num_events == 1
-    request_state = event_publisher.state_for(request=changed_request)
-    assert request_state == "allowed"
+    request_states = event_publisher.status_for(request=changed_request)
+    assert request_states[0] == "allowed"
 
     assert (
         access_grants.last_grant == "to id-of-john-doe@ghga.de for new-dataset"
