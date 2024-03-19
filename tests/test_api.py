@@ -104,7 +104,9 @@ async def test_create_access_request(
         "user_id": CREATION_DATA["user_id"],
         "dataset_id": CREATION_DATA["dataset_id"],
     }
-    assert recorded_event.type_ == joint_fixture.config.access_request_created_type
+    assert (
+        recorded_event.type_ == joint_fixture.config.access_request_created_event_type
+    )
 
 
 async def test_create_access_request_unauthorized(
@@ -346,7 +348,9 @@ async def test_patch_access_request(
         "user_id": CREATION_DATA["user_id"],
         "dataset_id": CREATION_DATA["dataset_id"],
     }
-    assert recorded_event.type_ == joint_fixture.config.access_request_allowed_type
+    assert (
+        recorded_event.type_ == joint_fixture.config.access_request_allowed_event_type
+    )
 
     # get request as user
     response = await client.get("/access-requests", headers=auth_headers_doe)

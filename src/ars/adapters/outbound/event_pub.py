@@ -36,17 +36,17 @@ class EventPubTranslatorConfig(BaseSettings):
         description="The topic used for events related to access requests.",
         examples=["access_requests"],
     )
-    access_request_created_type: str = Field(
+    access_request_created_event_type: str = Field(
         default=...,
         description="The type to use for 'access request created' events",
         examples=["access_request_created"],
     )
-    access_request_allowed_type: str = Field(
+    access_request_allowed_event_type: str = Field(
         default=...,
         description="The type to use for 'access request allowed' events",
         examples=["access_request_allowed"],
     )
-    access_request_denied_type: str = Field(
+    access_request_denied_event_type: str = Field(
         default=...,
         description="The type to use for 'access request denied' events",
         examples=["access_request_denied"],
@@ -85,19 +85,19 @@ class EventPubTranslator(EventPublisherPort):
         """Publish an event relaying that an access request was allowed."""
         await self._publish_access_request_event(
             request=request,
-            type_=self._config.access_request_allowed_type,
+            type_=self._config.access_request_allowed_event_type,
         )
 
     async def publish_request_created(self, *, request: models.AccessRequest) -> None:
         """Publish an event relaying that an access request was created."""
         await self._publish_access_request_event(
             request=request,
-            type_=self._config.access_request_created_type,
+            type_=self._config.access_request_created_event_type,
         )
 
     async def publish_request_denied(self, *, request: models.AccessRequest) -> None:
         """Publish an event relaying that an access request was denied."""
         await self._publish_access_request_event(
             request=request,
-            type_=self._config.access_request_denied_type,
+            type_=self._config.access_request_denied_event_type,
         )

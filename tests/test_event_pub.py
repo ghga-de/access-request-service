@@ -33,9 +33,9 @@ from ars.core.models import AccessRequest, AccessRequestStatus
 pytestmark = pytest.mark.asyncio(scope="session")
 
 dummy_config = EventPubTranslatorConfig(
-    access_request_allowed_type="access_request_allowed",
-    access_request_created_type="access_request_created",
-    access_request_denied_type="access_request_denied",
+    access_request_allowed_event_type="access_request_allowed",
+    access_request_created_event_type="access_request_created",
+    access_request_denied_event_type="access_request_denied",
     access_request_events_topic="access_requests",
 )
 
