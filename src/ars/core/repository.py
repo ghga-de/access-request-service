@@ -85,8 +85,9 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         Users may only create access requests for themselves.
 
-        Raises an AccessRequestAuthorizationError if the user is not authorized.
-        Raises an AccessRequestInvalidDuration error if the dates are invalid.
+        Raises:
+        - `AccessRequestAuthorizationError` if the user is not authorized.
+        - `AccessRequestInvalidDuration` error if the dates are invalid.
         """
         user_id = auth_context.id
         if not user_id or creation_data.user_id != user_id:
@@ -135,7 +136,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         Only data stewards may list requests created by other users.
 
-        Raises an AccessRequestAuthorizationError if the user is not authorized.
+        Raises an `AccessRequestAuthorizationError` if the user is not authorized.
         """
         if not auth_context.id:
             raise self.AccessRequestAuthorizationError("Not authorized")
@@ -175,10 +176,11 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         Only data stewards may use this method.
 
-        Raises an AccessRequestAuthorizationError if the user is not authorized.
-        Raises an AccessRequestNotFoundError if the specified request was not found.
-        Raises an AccessRequestInvalidState error is the specified state is invalid.
-        Raises an AccessRequestServerError if the grant could not be registered.
+        Raises:
+        - `AccessRequestAuthorizationError` if the user is not authorized.
+        - `AccessRequestNotFoundError` if the specified request was not found.
+        - `AccessRequestInvalidState` error if the specified state is invalid.
+        - `AccessRequestServerError` if the grant could not be registered.
         """
         user_id = auth_context.id
         if not user_id or not has_role(auth_context, DATA_STEWARD_ROLE):
