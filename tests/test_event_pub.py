@@ -66,7 +66,7 @@ event_publisher = EventPubTranslator(
 
 
 @pytest.mark.parametrize("status", ["created", "allowed", "denied"])
-async def test_publishing_an_event(status: str):
+async def test_access_request_events(status: str):
     """Test that an event is published properly."""
     request = AccessRequest(
         id="unique_access_request_id",
@@ -83,26 +83,18 @@ async def test_publishing_an_event(status: str):
         changed_by=None,
     )
 
+    publish_method = getattr(event_publisher, f"publish_request_{status}")
+    await publish_method(request=request)
+
+    expected_topic = dummy_config.access_request_events_topic
+    expected_type = getattr(dummy_config, f"access_request_{status}_event_type")
     expected_payload = AccessRequestDetails(
         user_id=request.user_id, dataset_id=request.dataset_id
     ).model_dump()
 
-    expected_type = ""
-    if status == "created":
-        expected_type = dummy_config.access_request_created_type
-        await event_publisher.publish_request_created(request=request)
-    elif status == "allowed":
-        expected_type = dummy_config.access_request_allowed_type
-        await event_publisher.publish_request_allowed(request=request)
-    elif status == "denied":
-        expected_type = dummy_config.access_request_denied_type
-        await event_publisher.publish_request_denied(request=request)
-    else:
-        raise RuntimeError("Double-check test parameters")
-
     assert event_recorder.recorded_event == {
         "type": expected_type,
         "key": request.user_id,
-        "topic": dummy_config.access_request_events_topic,
+        "topic": expected_topic,
         **expected_payload,
     }
