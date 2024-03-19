@@ -47,14 +47,6 @@ ars --help
 ### Parameters
 
 The service requires the following configuration parameters:
-- **`data_steward_email`**: An email address that can be used to notify data stewards.
-
-  - **Any of**
-
-    - *string, format: email*
-
-    - *null*
-
 - **`access_upfront_max_days`** *(integer)*: The maximum lead time in days to request access grants. Default: `180`.
 
 - **`access_grant_min_days`** *(integer)*: The minimum number of days that the access will be granted. Default: `7`.

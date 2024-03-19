@@ -22,7 +22,7 @@ from typing import Any, Optional
 
 from ghga_service_commons.auth.ghga import AuthContext, has_role
 from ghga_service_commons.utils.utc_dates import now_as_utc
-from pydantic import EmailStr, Field
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from ars.core.models import (
@@ -42,10 +42,6 @@ __all__ = ["AccessRequestConfig", "AccessRequestRepository"]
 
 class AccessRequestConfig(BaseSettings):
     """Config parameters needed for the AccessRequestRepository."""
-
-    data_steward_email: Optional[EmailStr] = Field(
-        ..., description="An email address that can be used to notify data stewards"
-    )
 
     access_upfront_max_days: int = Field(
         default=6 * 30,
@@ -76,7 +72,6 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         self._max_lead_time = timedelta(days=config.access_upfront_max_days)
         self._min_duration = timedelta(days=config.access_grant_min_days)
         self._max_duration = timedelta(days=config.access_grant_max_days)
-        self._data_steward_email = config.data_steward_email
         self._dao = access_request_dao
         self._event_publisher = event_publisher
         self._access_grants = access_grants

@@ -2,19 +2,6 @@
   "additionalProperties": false,
   "description": "Modifies the orginal Settings class provided by the user",
   "properties": {
-    "data_steward_email": {
-      "anyOf": [
-        {
-          "format": "email",
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "description": "An email address that can be used to notify data stewards",
-      "title": "Data Steward Email"
-    },
     "access_upfront_max_days": {
       "default": 180,
       "description": "The maximum lead time in days to request access grants",
@@ -357,7 +344,6 @@
     }
   },
   "required": [
-    "data_steward_email",
     "download_access_url",
     "access_request_events_topic",
     "access_request_created_type",

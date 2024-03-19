@@ -20,7 +20,6 @@ cors_allow_credentials: false
 cors_allowed_headers: []
 cors_allowed_methods: []
 cors_allowed_origins: []
-data_steward_email: helpdesk@ghga.de
 db_connection_str: '**********'
 db_name: access-requests
 docs_url: /docs

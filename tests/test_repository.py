@@ -75,7 +75,6 @@ config = AccessRequestConfig(
     access_upfront_max_days=365,
     access_grant_min_days=30,
     access_grant_max_days=2 * 365,
-    data_steward_email=auth_context_steward.email,
 )
 
 
