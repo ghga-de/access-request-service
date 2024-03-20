@@ -58,5 +58,5 @@ async def require_steward_context(
 # policy for requiring and getting an auth context
 UserAuthContext = Annotated[AuthContext, Security(require_auth_context)]
 
-# policy fo requiring and getting an auth context with data steward role
+# policy for requiring and getting an auth context with data steward role
 StewardAuthContext = Annotated[AuthContext, Security(require_steward_context)]
