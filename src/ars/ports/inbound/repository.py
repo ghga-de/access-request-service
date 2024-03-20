@@ -96,7 +96,7 @@ class AccessRequestRepositoryPort(ABC):
     ) -> None:
         """Update the status of the access request.
 
-        If the status is set to allowed, an IVA ID be provided or already exist.
+        If the status is set to allowed, an IVA ID must be provided or already exist.
 
         Only data stewards may use this method.
 
