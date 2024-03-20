@@ -11,14 +11,14 @@ cors_allowed_headers: []
 db_connection_str: "mongodb://mongodb:27017"
 db_name: "access-requests"
 
-notification_event_topic: notifications
-notification_event_type: notification
+access_request_events_topic: access_request_events
+access_request_created_event_type: access_request_created
+access_request_allowed_event_type: access_request_allowed
+access_request_denied_event_type: access_request_denied
 
 service_instance_id: "1"
 kafka_servers: ["kafka:9092"]
 
 download_access_url: "http://127.0.0.1:8080/download-access"
-
-data_steward_email: "helpdesk@ghga.de"
 
 auth_key: "{}"
