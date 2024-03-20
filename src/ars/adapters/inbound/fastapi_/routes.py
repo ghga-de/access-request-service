@@ -149,10 +149,10 @@ async def patch_access_request(
     auth_context: StewardAuthContext,
 ) -> Response:
     """Set the status of an access request"""
-    status = patch_data.status
+    iva_id, status = patch_data.iva_id, patch_data.status
     try:
         await repository.update(
-            access_request_id, status=status, auth_context=auth_context
+            access_request_id, iva_id=iva_id, status=status, auth_context=auth_context
         )
     except repository.AccessRequestAuthorizationError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
