@@ -320,11 +320,11 @@ async def test_can_create_request():
     assert dao.last_upsert == request
 
     # the 'publish_request_created' method should have been called, get events for request
+    expected_event = MockAccessRequestEvent(
+        request.user_id, request.dataset_id, "created"
+    )
     events = event_publisher.events_for(request=request)
-
-    # there will be exactly 1 'event' published (a call to the dummy publisher)
-    assert len(events) == 1
-    assert events[0].status == "created"
+    assert events == [expected_event]
 
     assert access_grants.last_grant == "nothing granted so far"
 
@@ -554,9 +554,11 @@ async def test_set_status_to_allowed():
     assert changed_dict.pop("changed_by") == "id-of-rod-steward@ghga.de"
     assert changed_dict == original_dict
 
+    expected_event = MockAccessRequestEvent(
+        changed_request.user_id, changed_request.dataset_id, "allowed"
+    )
     events = event_publisher.events_for(request=changed_request)
-    assert len(events) == 1
-    assert events[0].status == "allowed"
+    assert events == [expected_event]
 
     assert (
         access_grants.last_grant == "to id-of-john-doe@ghga.de for new-dataset"
