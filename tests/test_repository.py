@@ -211,15 +211,6 @@ class EventPublisherDummy(EventPublisherPort):
         """Get total number of recorded events."""
         return len(self.events)
 
-    def events_for(self, request: AccessRequest) -> list[MockAccessRequestEvent]:
-        """Get the events published for a given request."""
-        return [
-            event
-            for event in self.events
-            if event.user_id == request.user_id
-            and event.dataset_id == request.dataset_id
-        ]
-
     def _record_request(self, *, request: AccessRequest, request_state: str):
         """Record a request as either created, allowed, or denied for a user and dataset."""
         mock_event = MockAccessRequestEvent(
@@ -323,8 +314,7 @@ async def test_can_create_request():
     expected_event = MockAccessRequestEvent(
         request.user_id, request.dataset_id, "created"
     )
-    events = event_publisher.events_for(request=request)
-    assert events == [expected_event]
+    assert event_publisher.events == [expected_event]
 
     assert access_grants.last_grant == "nothing granted so far"
 
@@ -557,8 +547,7 @@ async def test_set_status_to_allowed():
     expected_event = MockAccessRequestEvent(
         changed_request.user_id, changed_request.dataset_id, "allowed"
     )
-    events = event_publisher.events_for(request=changed_request)
-    assert events == [expected_event]
+    assert event_publisher.events == [expected_event]
 
     assert (
         access_grants.last_grant == "to id-of-john-doe@ghga.de for new-dataset"
