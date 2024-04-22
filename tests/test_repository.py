@@ -271,7 +271,7 @@ class AccessGrantsDummy(AccessGrantsPort):
         )
 
 
-dao = AccessRequestDaoDummy()  # pyright: ignore
+dao = AccessRequestDaoDummy()  # type: ignore
 event_publisher = EventPublisherDummy()
 access_grants = AccessGrantsDummy()
 
