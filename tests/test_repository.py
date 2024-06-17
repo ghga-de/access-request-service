@@ -672,7 +672,7 @@ async def test_set_status_to_allowed_overriding_iva():
     )
 
 
-async def test_set_status_to_allowed_witout_iva():
+async def test_set_status_to_allowed_without_iva():
     """Test setting the status of a request from pending to allowed without any IVA."""
     original_request = await dao.get_by_id("request-id-4")
     original_dict = original_request.model_dump()
