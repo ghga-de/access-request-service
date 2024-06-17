@@ -36,7 +36,7 @@ from ars.ports.outbound.access_grants import AccessGrantsPort
 from ars.ports.outbound.dao import AccessRequestDaoPort, ResourceNotFoundError
 from ars.ports.outbound.event_pub import EventPublisherPort
 
-pytestmark = pytest.mark.asyncio(scope="session")
+pytestmark = pytest.mark.asyncio()
 
 ONE_HOUR = timedelta(seconds=60 * 60)
 ONE_YEAR = timedelta(days=365)
