@@ -197,6 +197,8 @@ The service requires the following configuration parameters:
   ```
 
 
+- **`log_traceback`** *(boolean)*: Whether to include exception tracebacks in log messages. Default: `true`.
+
 - **`auth_key`** *(string)*: The GHGA internal public key for validating the token signature.
 
 

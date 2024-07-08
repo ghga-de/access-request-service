@@ -22,6 +22,7 @@ components:
           title: Changed By
         dataset_id:
           description: ID of the dataset for which access is requested
+          pattern: ^[A-Z]{1,6}[0-9]{3,18}$
           title: Dataset Id
           type: string
         email:
@@ -96,6 +97,7 @@ components:
           type: string
         dataset_id:
           description: ID of the dataset for which access is requested
+          pattern: ^[A-Z]{1,6}[0-9]{3,18}$
           title: Dataset Id
           type: string
         email:
