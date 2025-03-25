@@ -203,9 +203,9 @@ fastapi==0.115.12 \
     # via
     #   -c lock/requirements-dev.txt
     #   ghga-service-commons
-ghga-event-schemas==4.1.0 \
-    --hash=sha256:4ed170215f7db058da5d9703465adbb10ac8b7118ae1413c450dab45e280a6fa \
-    --hash=sha256:87ccaed1fcc564d41c41352064b34911528ec31c12229801d4a8458ad833370a
+ghga-event-schemas==5.0.0 \
+    --hash=sha256:0b0622d2f724c8cc0f6bcd45b551943dafb0ce9c890d2c89bd6a303b5c21f3b8 \
+    --hash=sha256:d6c9ace06548e63defcaf2374b5c9d2f2e9d2585ecd5bee92cd896104ba1c7e7
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
