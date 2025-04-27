@@ -16,8 +16,13 @@ access_request_created_type: access_request_created
 access_request_allowed_type: access_request_allowed
 access_request_denied_type: access_request_denied
 
+dataset_change_topic: metadata_datasets
+dataset_upsertion_type: dataset_created
+dataset_deletion_type: dataset_deleted
+
 service_instance_id: "1"
 kafka_servers: ["kafka:9092"]
+kafka_enable_dlq: true
 
 download_access_url: "http://127.0.0.1:8080/download-access"
 

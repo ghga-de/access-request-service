@@ -63,6 +63,36 @@ The service requires the following configuration parameters:
   ```
 
 
+- <a id="properties/dataset_change_topic"></a>**`dataset_change_topic`** *(string, required)*: Name of the topic announcing, among other things, the list of files included in a new dataset.
+
+
+  Examples:
+
+  ```json
+  "metadata_datasets"
+  ```
+
+
+- <a id="properties/dataset_deletion_type"></a>**`dataset_deletion_type`** *(string, required)*: Type used for events announcing a new dataset overview.
+
+
+  Examples:
+
+  ```json
+  "dataset_deleted"
+  ```
+
+
+- <a id="properties/dataset_upsertion_type"></a>**`dataset_upsertion_type`** *(string, required)*: Type used for events announcing a new dataset overview.
+
+
+  Examples:
+
+  ```json
+  "dataset_created"
+  ```
+
+
 - <a id="properties/access_request_topic"></a>**`access_request_topic`** *(string, required)*: Name of the event topic used to consume access request events.
 
 
@@ -339,7 +369,7 @@ The service requires the following configuration parameters:
 
   - <a id="properties/auth_algs/items"></a>**Items** *(string)*
 
-- <a id="properties/auth_check_claims"></a>**`auth_check_claims`** *(object)*: A dict of all GHGA internal claims that shall be verified. Default: `{"id": null, "name": null, "email": null, "iat": null, "exp": null}`.
+- <a id="properties/auth_check_claims"></a>**`auth_check_claims`** *(object)*: A dict of all GHGA internal claims that shall be verified. Can contain additional properties. Default: `{"id": null, "name": null, "email": null, "iat": null, "exp": null}`.
 
 - <a id="properties/auth_map_claims"></a>**`auth_map_claims`** *(object)*: A mapping of claims to attributes in the GHGA auth context. Can contain additional properties. Default: `{}`.
 
