@@ -183,7 +183,7 @@ async def test_consume_from_retry(consumer: ConsumerFixture):
     # wait until the event is processed
     await asyncio.wait_for(subscriber.run(forever=False), timeout=TIMEOUT)
 
-    # Check that WPS got the event from the retry topic and was able to process it
+    # Check that subscriber got event from retry topic and was able to process it
     dataset = None
     for _ in range(RETRIES):
         await asyncio.sleep(RETRY_INTERVAL)
