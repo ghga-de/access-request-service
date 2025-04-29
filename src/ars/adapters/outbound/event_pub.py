@@ -98,7 +98,7 @@ class EventPubTranslator(EventPublisherPort):
         """Publish an event relaying that an access request access starts date was changed."""
         await self._publish_access_request_event(
             request=request,
-            type_=self._config.access_request_denied_type,
+            type_=self._config.access_request_starts_changed_type,
         )
 
     async def publish_request_access_ends_changed(
@@ -107,5 +107,5 @@ class EventPubTranslator(EventPublisherPort):
         """Publish an event relaying that an access request access ends date was changed."""
         await self._publish_access_request_event(
             request=request,
-            type_=self._config.access_request_denied_type,
+            type_=self._config.access_request_starts_changed_type,
         )

@@ -153,8 +153,15 @@ components:
         status:
           $ref: '#/components/schemas/AccessRequestStatus'
           description: The new status of this access request
-      required:
-      - status
+          title: Status
+        starts_date:
+          description: The new access start date of this access request
+          type: string
+          title: Access start date
+        ends_date:
+          description: The new access end date of this access request
+          type: string
+          title: Access end date
       title: AccessRequestPatchData
       type: object
     AccessRequestStatus:
@@ -251,7 +258,7 @@ paths:
       - AccessRequests
   /access-requests/{access_request_id}:
     patch:
-      description: Endpoint used to set the status of an access request
+      description: Endpoint used to change an access request
       operationId: patch_access_request
       parameters:
       - in: path
