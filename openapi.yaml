@@ -12,10 +12,10 @@ components:
         access_ends_changed:
           anyOf:
           - format: date-time
-          - type: string
+            type: string
           - type: 'null'
           description: Last change date of the access end date of this request
-          title: Access End Date Changed
+          title: Access Ends Changed
         access_starts:
           description: Requested start date of access
           format: date-time
@@ -24,10 +24,10 @@ components:
         access_starts_changed:
           anyOf:
           - format: date-time
-          - type: string
+            type: string
           - type: 'null'
           description: Last change date of the access start date of this request
-          title: Access Start Date Changed
+          title: Access Starts Changed
         changed_by:
           anyOf:
           - type: string
@@ -144,6 +144,20 @@ components:
       additionalProperties: false
       description: All data that describes an access request patch.
       properties:
+        access_ends:
+          anyOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+          description: Requested end date of access
+          title: Access Ends
+        access_starts:
+          anyOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+          description: Requested start date of access
+          title: Access Starts
         iva_id:
           anyOf:
           - type: string
@@ -151,17 +165,14 @@ components:
           description: ID of the IVA to be used for this request
           title: Iva Id
         status:
-          $ref: '#/components/schemas/AccessRequestStatus'
+          anyOf:
+          - $ref: '#/components/schemas/AccessRequestStatus'
+          - type: 'null'
           description: The new status of this access request
-          title: Status
-        starts_date:
-          description: The new access start date of this access request
-          type: string
-          title: Access start date
-        ends_date:
-          description: The new access end date of this access request
-          type: string
-          title: Access end date
+      required:
+      - status
+      - access_starts
+      - access_ends
       title: AccessRequestPatchData
       type: object
     AccessRequestStatus:
@@ -258,7 +269,8 @@ paths:
       - AccessRequests
   /access-requests/{access_request_id}:
     patch:
-      description: Endpoint used to change an access request
+      description: Endpoint used to change an access request status, access start,
+        or access end date
       operationId: patch_access_request
       parameters:
       - in: path
@@ -275,16 +287,16 @@ paths:
         required: true
       responses:
         '204':
-          description: Status was successfully changed
+          description: Access request was successfully changed
         '403':
-          description: Not authorized to create an access request.
+          description: Not authorized to change access request.
         '404':
           description: Access request does not exist.
         '422':
           description: Validation error in submitted data.
       security:
       - HTTPBearer: []
-      summary: Set status of an access request
+      summary: Set status, access start, or access end date of an access request
       tags:
       - AccessRequests
   /health:

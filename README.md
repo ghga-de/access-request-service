@@ -133,26 +133,6 @@ The service requires the following configuration parameters:
   ```
 
 
-- <a id="properties/access_request_starts_changed_type"></a>**`access_request_starts_changed_type`** *(string, required)*: The type to use for access request access start date changed events.
-
-
-  Examples:
-
-  ```json
-  "access_request_starts_changed"
-  ```
-
-
-- <a id="properties/access_request_ends_changed_type"></a>**`access_request_ends_changed_type`** *(string, required)*: The type to use for access request access end date changed events.
-
-
-  Examples:
-
-  ```json
-  "access_request_ends_changed"
-  ```
-
-
 - <a id="properties/service_name"></a>**`service_name`** *(string)*: Short name of this service. Default: `"ars"`.
 
 - <a id="properties/service_instance_id"></a>**`service_instance_id`** *(string, required)*: A string that uniquely identifies this instance across all instances of this service. This is included in log messages.

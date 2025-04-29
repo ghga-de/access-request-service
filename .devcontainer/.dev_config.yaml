@@ -15,8 +15,6 @@ access_request_topic: access_request_events
 access_request_created_type: access_request_created
 access_request_allowed_type: access_request_allowed
 access_request_denied_type: access_request_denied
-access_request_starts_changed_type: access_request_starts_changed
-access_request_ends_changed_type: access_request_ends_changed
 
 dataset_change_topic: metadata_datasets
 dataset_upsertion_type: dataset_created
