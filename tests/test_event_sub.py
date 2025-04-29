@@ -151,7 +151,7 @@ async def test_event_subscriber_dlq(consumer: ConsumerFixture):
 
     # Consume the event, which should error and get sent to the DLQ
     async with kafka.record_events(in_topic=config.kafka_dlq_topic) as recorder:
-        await subscriber.run(forever=False)
+        await asyncio.wait_for(subscriber.run(forever=False), timeout=TIMEOUT)
     assert recorder.recorded_events
     assert len(recorder.recorded_events) == 1
     event = recorder.recorded_events[0]
