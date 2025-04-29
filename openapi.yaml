@@ -64,6 +64,20 @@ components:
           - type: 'null'
           description: Last change date of the status of this request
           title: Status Changed
+        access_starts_changed:
+          anyOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+          description: Last change date of the access start date of this request
+          title: Access Start Date Changed
+        access_ends_changed:
+          anyOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+          description: Last change date of the access end date of this request
+          title: Access End Date Changed
         user_id:
           description: ID of the user who requests access
           title: User Id

@@ -21,13 +21,14 @@ from operator import attrgetter
 from typing import Any, cast
 
 from ghga_service_commons.auth.ghga import AuthContext, has_role
-from ghga_service_commons.utils.utc_dates import now_as_utc
+from ghga_service_commons.utils.utc_dates import UTCDatetime, now_as_utc
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from ars.core.models import (
     AccessRequest,
     AccessRequestCreationData,
+    AccessRequestPatchData,
     AccessRequestStatus,
 )
 from ars.core.roles import DATA_STEWARD_ROLE
@@ -164,13 +165,140 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         return requests
 
-    async def update(  # noqa: C901
+    def handle_generic_errors(
+        self,
+        user_id: str,
+        auth_context: AuthContext,
+        patch_data: AccessRequestPatchData,
+    ) -> None:
+        """Handles the generic errors
+
+        Raises:
+        - `AccessRequestAuthorizationError` if the user is not authorized.
+        - `AccessRequestPatchNoArgsError` if there is no patch data.
+        """
+        status, access_starts, access_ends = (
+            patch_data.status,
+            patch_data.access_starts,
+            patch_data.access_ends,
+        )
+        if not user_id or not has_role(auth_context, DATA_STEWARD_ROLE):
+            raise self.AccessRequestAuthorizationError("Not authorized")
+        if not (status or access_starts or access_ends):
+            raise self.AccessRequestPatchNoArgsError(
+                "No arguments provided for update request"
+            )
+
+    def handle_status_errors(
+        self, iva_id: str | None, status: str | None, request: AccessRequest
+    ) -> None:
+        """Handles the status-specific errors
+
+        Raises:
+        - `AccessRequestMissingIva` if an IVA is needed but not provided.
+        - `AccessRequestInvalidState` error if the specified state is invalid.
+        """
+        if status:
+            if request.status == status:
+                raise self.AccessRequestInvalidState("Same status is already set")
+            if request.status != AccessRequestStatus.PENDING:
+                raise self.AccessRequestInvalidState("Status cannot be reverted")
+            if not iva_id:
+                iva_id = request.iva_id
+            if status == AccessRequestStatus.ALLOWED and not iva_id:
+                raise self.AccessRequestMissingIva("An IVA ID must be specified")
+
+    def handle_dates_errors(
+        self,
+        access_starts: UTCDatetime | None,
+        access_ends: UTCDatetime | None,
+        request: AccessRequest,
+    ) -> None:
+        """Handles the access start and end date-specific errors
+
+        Raises:
+        - `AccessRequestInvalidDuration` error if the specified access duration is invalid.
+        - `AccessRequestInvalidStart` error if the specified access start date is invalid.
+        - `AccessRequestInvalidEnd` error if the specified access end date is invalid.
+        """
+        if access_starts and access_ends:
+            if access_starts >= access_ends:
+                raise self.AccessRequestInvalidDuration(
+                    "Access start date cannot be the same or later than the access end date"
+                )
+        elif access_starts:
+            if access_starts == request.access_starts:
+                raise self.AccessRequestInvalidStart(
+                    "Same access start date is already set"
+                )
+            if access_starts >= request.access_ends:
+                raise self.AccessRequestInvalidStart(
+                    "Access start date cannot be the same or later than the access end date"
+                )
+        elif access_ends:
+            if access_ends == request.access_ends:
+                raise self.AccessRequestInvalidStart(
+                    "Same access end date is already set"
+                )
+            if access_ends <= request.access_starts:
+                raise self.AccessRequestInvalidStart(
+                    "Access end date cannot be the same or earlier than the access start date"
+                )
+
+    async def handle_status_changed(
+        self, status: str | None, request: AccessRequest, iva_id: str | None
+    ) -> None:
+        """Handles when the status of an access request has changed
+
+        Raises:
+        - `AccessRequestServerError` if the grant could not be registered.
+        """
+        if status:
+            if status == AccessRequestStatus.ALLOWED:
+                # Try to register as download access grant
+                try:
+                    await self._access_grants.grant_download_access(
+                        user_id=request.user_id,
+                        iva_id=cast(str, iva_id),  # has already been checked above
+                        dataset_id=request.dataset_id,
+                        valid_from=request.access_starts,
+                        valid_until=request.access_ends,
+                    )
+                except self._access_grants.AccessGrantsError as error:
+                    # roll back the status update
+                    await self._dao.update(request)
+                    raise self.AccessRequestServerError(
+                        f"Could not register the download access grant: {error}"
+                    ) from error
+
+            # Emit events that communicate the fate of the access request
+            if status == AccessRequestStatus.DENIED:
+                await self._event_publisher.publish_request_denied(request=request)
+            elif status == AccessRequestStatus.ALLOWED:
+                await self._event_publisher.publish_request_allowed(request=request)
+
+    async def handle_access_date_changed(
+        self,
+        access_starts: UTCDatetime | None,
+        access_ends: UTCDatetime | None,
+        request: AccessRequest,
+    ) -> None:
+        """Handles the publication of events when the access start or end dates have changed"""
+        if access_starts:
+            await self._event_publisher.publish_request_access_starts_changed(
+                request=request
+            )
+        if access_ends:
+            await self._event_publisher.publish_request_access_ends_changed(
+                request=request
+            )
+
+    async def update(
         self,
         access_request_id: str,
         *,
-        status: AccessRequestStatus,
+        patch_data: AccessRequestPatchData,
         auth_context: AuthContext,
-        iva_id: str | None = None,
     ) -> None:
         """Update the status of the access request.
 
@@ -179,62 +307,54 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         Only data stewards may use this method.
 
         Raises:
-        - `AccessRequestAuthorizationError` if the user is not authorized.
         - `AccessRequestNotFoundError` if the specified request was not found.
-        - `AccessRequestMissingIva` if an IVA is needed but not provided.
-        - `AccessRequestInvalidState` error if the specified state is invalid.
-        - `AccessRequestServerError` if the grant could not be registered.
         """
+        iva_id, status, access_starts, access_ends = (
+            patch_data.iva_id,
+            patch_data.status,
+            patch_data.access_starts,
+            patch_data.access_ends,
+        )
         user_id = auth_context.id
-        if not user_id or not has_role(auth_context, DATA_STEWARD_ROLE):
-            raise self.AccessRequestAuthorizationError("Not authorized")
 
         try:
             request = await self._dao.get_by_id(access_request_id)
         except ResourceNotFoundError as error:
             raise self.AccessRequestNotFoundError("Access request not found") from error
-        if request.status == status:
-            raise self.AccessRequestInvalidState("Same status is already set")
-        if request.status != AccessRequestStatus.PENDING:
-            raise self.AccessRequestInvalidState("Status cannot be reverted")
-        if not iva_id:
-            iva_id = request.iva_id
-        if status == AccessRequestStatus.ALLOWED and not iva_id:
-            raise self.AccessRequestMissingIva("An IVA ID must be specified")
 
-        modified_request = request.model_copy(
-            update={
-                "iva_id": iva_id,
-                "status": status,
-                "status_changed": now_as_utc(),
-                "changed_by": user_id,
-            }
+        self.handle_generic_errors(
+            user_id=user_id, auth_context=auth_context, patch_data=patch_data
         )
+        self.handle_status_errors(iva_id=iva_id, status=status, request=request)
+        self.handle_dates_errors(
+            access_starts=access_starts, access_ends=access_ends, request=request
+        )
+
+        update: dict[str, Any] = {
+            "iva_id": iva_id,
+            "changed_by": user_id,
+        }
+
+        change_time = now_as_utc()
+
+        if status:
+            update |= {"status": status, "status_changed": change_time}
+        if access_starts:
+            update |= {
+                "access_starts": access_starts,
+                "access_starts_changed": change_time,
+            }
+        if access_ends:
+            update |= {"access_ends": access_ends, "access_ends_changed": change_time}
+
+        modified_request = request.model_copy(update=update)
 
         await self._dao.update(modified_request)
 
-        if status == AccessRequestStatus.ALLOWED:
-            # Try to register as download access grant
-            try:
-                await self._access_grants.grant_download_access(
-                    user_id=request.user_id,
-                    iva_id=cast(str, iva_id),  # has already been checked above
-                    dataset_id=request.dataset_id,
-                    valid_from=request.access_starts,
-                    valid_until=request.access_ends,
-                )
-            except self._access_grants.AccessGrantsError as error:
-                # roll back the status update
-                await self._dao.update(request)
-                raise self.AccessRequestServerError(
-                    f"Could not register the download access grant: {error}"
-                ) from error
-
-        # Emit events that communicate the fate of the access request
-        if status == AccessRequestStatus.DENIED:
-            await self._event_publisher.publish_request_denied(request=request)
-        elif status == AccessRequestStatus.ALLOWED:
-            await self._event_publisher.publish_request_allowed(request=request)
+        await self.handle_status_changed(status=status, iva_id=iva_id, request=request)
+        await self.handle_access_date_changed(
+            access_starts=access_starts, access_ends=access_ends, request=request
+        )
 
     @staticmethod
     def _hide_internals(request: AccessRequest) -> AccessRequest:

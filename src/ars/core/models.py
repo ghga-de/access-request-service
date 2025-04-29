@@ -102,6 +102,14 @@ class AccessRequest(AccessRequestCreationData):
     status_changed: UTCDatetime | None = Field(
         default=None, description="Last change date of the status of this request"
     )
+    access_starts_changed: UTCDatetime | None = Field(
+        default=None,
+        description="Last change date of the access start date of this request",
+    )
+    access_ends_changed: UTCDatetime | None = Field(
+        default=None,
+        description="Last change date of the access end date of this request",
+    )
     changed_by: str | None = Field(
         default=None,
         description="The ID of the data steward who made the status change",
@@ -115,7 +123,15 @@ class AccessRequestPatchData(BaseDto):
         default=None,
         description="ID of the IVA to be used for this request",
     )
-    status: AccessRequestStatus = Field(
+    status: AccessRequestStatus | None = Field(
         default=...,
         description="The new status of this access request",
+    )
+
+    access_starts: UTCDatetime | None = Field(
+        default=..., description="Requested start date of access"
+    )
+
+    access_ends: UTCDatetime | None = Field(
+        default=..., description="Requested end date of access"
     )

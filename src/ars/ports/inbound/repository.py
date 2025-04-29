@@ -23,6 +23,7 @@ from ghga_service_commons.auth.ghga import AuthContext
 from ars.core.models import (
     AccessRequest,
     AccessRequestCreationData,
+    AccessRequestPatchData,
     AccessRequestStatus,
 )
 
@@ -44,6 +45,15 @@ class AccessRequestRepositoryPort(ABC):
 
     class AccessRequestInvalidDuration(AccessRequestError):
         """Error raised when the time frame for access is invalid."""
+
+    class AccessRequestInvalidStart(AccessRequestError):
+        """Error raised when the start date for access is invalid."""
+
+    class AccessRequestInvalidEnd(AccessRequestError):
+        """Error raised when the end date for access is invalid."""
+
+    class AccessRequestPatchNoArgsError(AccessRequestError):
+        """Error raised when there are no values to change in a change request."""
 
     class AccessRequestNotFoundError(AccessRequestError):
         """Error raised when an access request cannot be found."""
@@ -89,11 +99,10 @@ class AccessRequestRepositoryPort(ABC):
         self,
         access_request_id: str,
         *,
-        status: AccessRequestStatus,
+        patch_data: AccessRequestPatchData,
         auth_context: AuthContext,
-        iva_id: str | None = None,
     ) -> None:
-        """Update the status of the access request.
+        """Update the status, access start or access end date of the access request.
 
         If the status is set to allowed, an IVA ID must be provided or already exist.
 

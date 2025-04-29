@@ -131,11 +131,11 @@ async def get_access_requests(
     "/access-requests/{access_request_id}",
     operation_id="patch_access_request",
     tags=["AccessRequests"],
-    summary="Set status of an access request",
-    description="Endpoint used to set the status of an access request",
+    summary="Set status, access start, or access end date of an access request",
+    description="Endpoint used to change an access request status, access start, or access end date",
     responses={
-        204: {"description": "Status was successfully changed"},
-        403: {"description": "Not authorized to create an access request."},
+        204: {"description": "Access request was successfully changed"},
+        403: {"description": "Not authorized to change access request."},
         404: {"description": "Access request does not exist."},
         422: {"description": "Validation error in submitted data."},
     },
@@ -148,10 +148,11 @@ async def patch_access_request(
     auth_context: StewardAuthContext,
 ) -> Response:
     """Set the status of an access request"""
-    iva_id, status = patch_data.iva_id, patch_data.status
     try:
         await repository.update(
-            access_request_id, iva_id=iva_id, status=status, auth_context=auth_context
+            access_request_id,
+            patch_data=patch_data,
+            auth_context=auth_context,
         )
     except repository.AccessRequestAuthorizationError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
@@ -160,6 +161,9 @@ async def patch_access_request(
     except (
         repository.AccessRequestInvalidState,
         repository.AccessRequestMissingIva,
+        repository.AccessRequestInvalidStart,
+        repository.AccessRequestInvalidEnd,
+        repository.AccessRequestPatchNoArgsError,
     ) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
