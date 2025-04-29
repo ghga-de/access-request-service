@@ -328,14 +328,14 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         request: AccessRequest,
     ) -> None:
         """Handles the publication of events when the access start or end dates have changed"""
-        if access_starts:
-            await self._event_publisher.publish_request_access_starts_changed(
-                request=request
-            )
-        if access_ends:
-            await self._event_publisher.publish_request_access_ends_changed(
-                request=request
-            )
+        # if access_starts:
+        #     await self._event_publisher.publish_request_access_starts_changed(
+        #         request=request
+        #     )
+        # if access_ends:
+        #     await self._event_publisher.publish_request_access_ends_changed(
+        #         request=request
+        #     )
 
     async def update(
         self,

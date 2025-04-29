@@ -88,22 +88,22 @@ class EventPubTranslator(EventPublisherPort):
             type_=self._config.access_request_denied_type,
         )
 
-    async def publish_request_access_starts_changed(
-        self, *, request: models.AccessRequest
-    ) -> None:
-        """Publish an event relaying that an access request access starts date was changed."""
-        await self._publish_access_request_event(
-            request=request,
-            # type_=self._config.access_request_starts_changed_type,
-            type_=self._config.access_request_denied_type,
-        )
+    # async def publish_request_access_starts_changed(
+    #     self, *, request: models.AccessRequest
+    # ) -> None:
+    #     """Publish an event relaying that an access request access starts date was changed."""
+    #     await self._publish_access_request_event(
+    #         request=request,
+    #         # type_=self._config.access_request_starts_changed_type,
+    #         type_=self._config.access_request_denied_type,
+    #     )
 
-    async def publish_request_access_ends_changed(
-        self, *, request: models.AccessRequest
-    ) -> None:
-        """Publish an event relaying that an access request access ends date was changed."""
-        await self._publish_access_request_event(
-            request=request,
-            # type_=self._config.access_request_starts_changed_type,
-            type_=self._config.access_request_denied_type,
-        )
+    # async def publish_request_access_ends_changed(
+    #     self, *, request: models.AccessRequest
+    # ) -> None:
+    #     """Publish an event relaying that an access request access ends date was changed."""
+    #     await self._publish_access_request_event(
+    #         request=request,
+    #         # type_=self._config.access_request_starts_changed_type,
+    #         type_=self._config.access_request_denied_type,
+    #     )
