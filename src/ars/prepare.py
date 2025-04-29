@@ -29,10 +29,7 @@ from hexkit.providers.mongodb import MongoDbDaoFactory
 from ars.adapters.inbound.event_sub import EventSubTranslator
 from ars.adapters.inbound.fastapi_ import dummies
 from ars.adapters.inbound.fastapi_.configure import get_configured_app
-from ars.adapters.outbound.daos import (
-    AccessRequestDaoConstructor,
-    DatasetDaoConstructor,
-)
+from ars.adapters.outbound.daos import get_access_request_dao, get_dataset_dao
 from ars.adapters.outbound.event_pub import EventPubTranslator
 from ars.adapters.outbound.http import AccessGrantsAdapter
 from ars.config import Config
@@ -47,10 +44,8 @@ async def prepare_core(
 ) -> AsyncGenerator[AccessRequestRepositoryPort, None]:
     """Constructs and initializes all core components and their outbound dependencies."""
     dao_factory = MongoDbDaoFactory(config=config)
-    access_request_dao = await AccessRequestDaoConstructor.construct(
-        dao_factory=dao_factory
-    )
-    dataset_dao = await DatasetDaoConstructor.construct(dao_factory=dao_factory)
+    access_request_dao = await get_access_request_dao(dao_factory=dao_factory)
+    dataset_dao = await get_dataset_dao(dao_factory=dao_factory)
     async with (
         KafkaEventPublisher.construct(config=config) as event_publisher,
         AccessGrantsAdapter.construct(config=config) as access_grants,
