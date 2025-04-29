@@ -25,6 +25,7 @@ from ars.core.models import (
     AccessRequestCreationData,
     AccessRequestPatchData,
     AccessRequestStatus,
+    Dataset,
 )
 
 
@@ -59,7 +60,10 @@ class AccessRequestRepositoryPort(ABC):
         """Error raised when an access request cannot be found."""
 
     class AccessRequestServerError(AccessRequestError):
-        """Error raised when there was some kind of a server error."""
+        """Error raised when there was some kind of server error."""
+
+    class DatasetNotFoundError(RuntimeError):
+        """Error raised when a dataset cannot be found."""
 
     @abstractmethod
     async def create(
@@ -114,5 +118,26 @@ class AccessRequestRepositoryPort(ABC):
         - `AccessRequestMissingIva` if an IVA is needed but not provided.
         - `AccessRequestInvalidState` error if the specified state is invalid.
         - `AccessRequestServerError` if the grant could not be registered.
+        """
+        ...
+
+    @abstractmethod
+    async def register_dataset(self, dataset: Dataset) -> None:
+        """Register a dataset in the repository."""
+        ...
+
+    @abstractmethod
+    async def delete_dataset(self, dataset_id: str) -> None:
+        """Delete the registered dataset with the given ID.
+
+        Raises a `DatasetNotFoundError` if the dataset was not found.
+        """
+        ...
+
+    @abstractmethod
+    async def get_dataset(self, dataset_id: str) -> Dataset:
+        """Get the registered dataset with the given ID.
+
+        Raises a `DatasetNotFoundError` if the dataset was not found.
         """
         ...

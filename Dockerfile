@@ -47,3 +47,4 @@ USER appuser
 ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT ["ars"]
+CMD ["run-rest"]

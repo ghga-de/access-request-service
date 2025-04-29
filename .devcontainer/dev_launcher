@@ -4,4 +4,4 @@ set -a
 . <(python tests/fixtures/auth_keys.py)
 set +a
 
-ars
+ars run-rest
