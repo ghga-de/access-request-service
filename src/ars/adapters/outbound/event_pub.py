@@ -21,6 +21,8 @@ from ghga_event_schemas.configs.stateless import (
     AccessRequestAllowedEventsConfig,
     AccessRequestCreatedEventsConfig,
     AccessRequestDeniedEventsConfig,
+    AccessRequestEndsChangedEventsConfig,
+    AccessRequestStartsChangedEventsConfig,
 )
 from hexkit.custom_types import JsonObject
 from hexkit.protocols.eventpub import EventPublisherProtocol
@@ -35,6 +37,8 @@ class EventPubTranslatorConfig(
     AccessRequestAllowedEventsConfig,
     AccessRequestCreatedEventsConfig,
     AccessRequestDeniedEventsConfig,
+    AccessRequestStartsChangedEventsConfig,
+    AccessRequestEndsChangedEventsConfig,
 ):
     """Config for the event pub translator"""
 
@@ -83,6 +87,24 @@ class EventPubTranslator(EventPublisherPort):
 
     async def publish_request_denied(self, *, request: models.AccessRequest) -> None:
         """Publish an event relaying that an access request was denied."""
+        await self._publish_access_request_event(
+            request=request,
+            type_=self._config.access_request_denied_type,
+        )
+
+    async def publish_request_access_starts_changed(
+        self, *, request: models.AccessRequest
+    ) -> None:
+        """Publish an event relaying that an access request access starts date was changed."""
+        await self._publish_access_request_event(
+            request=request,
+            type_=self._config.access_request_denied_type,
+        )
+
+    async def publish_request_access_ends_changed(
+        self, *, request: models.AccessRequest
+    ) -> None:
+        """Publish an event relaying that an access request access ends date was changed."""
         await self._publish_access_request_event(
             request=request,
             type_=self._config.access_request_denied_type,

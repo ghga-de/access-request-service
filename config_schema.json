@@ -44,6 +44,22 @@
       "title": "Access Request Denied Type",
       "type": "string"
     },
+    "access_request_starts_changed_type": {
+      "description": "The type to use for access request access start date changed events",
+      "examples": [
+        "access_request_starts_changed"
+      ],
+      "title": "Access Request Start Date Changed Type",
+      "type": "string"
+    },
+    "access_request_ends_changed_type": {
+      "description": "The type to use for access request access end date changed events",
+      "examples": [
+        "access_request_ends_changed"
+      ],
+      "title": "Access Request End Date Changed Type",
+      "type": "string"
+    },
     "access_request_created_type": {
       "description": "The type to use for access request created events",
       "examples": [
