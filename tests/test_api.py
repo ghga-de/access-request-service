@@ -448,16 +448,8 @@ async def test_patch_only_access_duration(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
-    httpx_mock: HTTPXMock,
 ):
-    """Test that data stewards get an error when patching non-existing requests."""
-    # mock setting the access grant
-    httpx_mock.add_response(
-        method="POST",
-        url="http://access/users/id-of-john-doe@ghga.de/ivas/some-iva/datasets/DS001",
-        status_code=204,
-    )
-
+    """Test that data stewards can change the access duration of a request by itself."""
     client = rest.rest_client
     # create access request as user
     response = await client.post(
