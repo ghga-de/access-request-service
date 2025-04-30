@@ -449,13 +449,13 @@ async def test_must_be_data_steward_to_patch_access_request(
     # set status without authentication
     response = await client.patch(
         f"/access-requests/{access_request_id}",
-        json={"patch_data": {"status": "allowed"}},
+        json={"status": "allowed"},
     )
     assert response.status_code == 403
     # set status to allowed as the same user
     response = await client.patch(
         f"/access-requests/{access_request_id}",
-        json={"patch_data": {"status": "allowed"}},
+        json={"status": "allowed"},
         headers=auth_headers_doe,
     )
     assert response.status_code == 403

@@ -219,7 +219,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 "No arguments provided for update request"
             )
 
-    def _handle_status_errors_update(
+    def _handle_status_update(
         self,
         iva_id: str | None,
         status: str | None,
@@ -245,8 +245,6 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 )
                 log.error(invalid_state_error)
                 raise invalid_state_error
-            if not iva_id:
-                iva_id = request.iva_id
             if status == AccessRequestStatus.ALLOWED and not iva_id:
                 missing_iva_error = self.AccessRequestMissingIva(
                     "An IVA ID must be specified"
@@ -254,7 +252,11 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 log.error(missing_iva_error)
                 raise missing_iva_error
 
-            update |= {"status": status, "status_changed": now_as_utc()}
+            update |= {
+                "iva_id": iva_id,
+                "status": status,
+                "status_changed": now_as_utc(),
+            }
 
     def _handle_validity_period_update(
         self,
@@ -357,8 +359,10 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             log.error(not_found_error, extra={"access_request_id": access_request_id})
             raise not_found_error from error
 
+        if not iva_id:
+            iva_id = request.iva_id
+
         update: dict[str, Any] = {
-            "iva_id": iva_id,
             "changed_by": user_id,
         }
 
@@ -366,7 +370,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             user_id=user_id, auth_context=auth_context, patch_data=patch_data
         )
 
-        self._handle_status_errors_update(
+        self._handle_status_update(
             iva_id=iva_id, status=status, request=request, update=update
         )
         self._handle_validity_period_update(
