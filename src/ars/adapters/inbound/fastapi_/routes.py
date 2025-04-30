@@ -161,8 +161,6 @@ async def patch_access_request(
     except (
         repository.AccessRequestInvalidState,
         repository.AccessRequestMissingIva,
-        repository.AccessRequestInvalidStart,
-        repository.AccessRequestInvalidEnd,
         repository.AccessRequestPatchNoArgsError,
     ) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

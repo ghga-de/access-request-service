@@ -47,12 +47,6 @@ class AccessRequestRepositoryPort(ABC):
     class AccessRequestInvalidDuration(AccessRequestError):
         """Error raised when the time frame for access is invalid."""
 
-    class AccessRequestInvalidStart(AccessRequestError):
-        """Error raised when the start date for access is invalid."""
-
-    class AccessRequestInvalidEnd(AccessRequestError):
-        """Error raised when the end date for access is invalid."""
-
     class AccessRequestPatchNoArgsError(AccessRequestError):
         """Error raised when there are no values to change in a change request."""
 

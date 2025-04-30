@@ -193,13 +193,13 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         return requests
 
-    def handle_generic_errors(
+    def _handle_basic_patch_request_check(
         self,
         user_id: str,
         auth_context: AuthContext,
         patch_data: AccessRequestPatchData,
     ) -> None:
-        """Handles the generic errors
+        """Handles the basic checking of correctness of the patch request
 
         Raises:
         - `AccessRequestAuthorizationError` if the user is not authorized.
@@ -219,10 +219,14 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 "No arguments provided for update request"
             )
 
-    def handle_status_errors(
-        self, iva_id: str | None, status: str | None, request: AccessRequest
+    def _handle_status_errors_update(
+        self,
+        iva_id: str | None,
+        status: str | None,
+        request: AccessRequest,
+        update: dict[str, Any],
     ) -> None:
-        """Handles the status-specific errors
+        """Handles the update of an access request status
 
         Raises:
         - `AccessRequestMissingIva` if an IVA is needed but not provided.
@@ -250,44 +254,43 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 log.error(missing_iva_error)
                 raise missing_iva_error
 
-    def handle_dates_errors(
+            update |= {"status": status, "status_changed": now_as_utc()}
+
+    def _handle_validity_period_update(
         self,
         access_starts: UTCDatetime | None,
         access_ends: UTCDatetime | None,
         request: AccessRequest,
+        update: dict[str, Any],
     ) -> None:
-        """Handles the access start and end date-specific errors
+        """Handles the updating of the access request validity period
 
         Raises:
         - `AccessRequestInvalidDuration` error if the specified access duration is invalid.
-        - `AccessRequestInvalidStart` error if the specified access start date is invalid.
-        - `AccessRequestInvalidEnd` error if the specified access end date is invalid.
         """
-        if access_starts and access_ends:
-            if access_starts >= access_ends:
-                raise self.AccessRequestInvalidDuration(
-                    "Access start date cannot be the same or later than the access end date"
-                )
-        elif access_starts:
-            if access_starts == request.access_starts:
-                raise self.AccessRequestInvalidStart(
-                    "Same access start date is already set"
-                )
-            if access_starts >= request.access_ends:
-                raise self.AccessRequestInvalidStart(
-                    "Access start date cannot be the same or later than the access end date"
-                )
-        elif access_ends:
-            if access_ends == request.access_ends:
-                raise self.AccessRequestInvalidStart(
-                    "Same access end date is already set"
-                )
-            if access_ends <= request.access_starts:
-                raise self.AccessRequestInvalidStart(
-                    "Access end date cannot be the same or earlier than the access start date"
-                )
+        if request.status != AccessRequestStatus.PENDING:
+            raise self.AccessRequestInvalidDuration(
+                "Access request validity period cannot be changed after the request was processed"
+            )
+        if (access_starts and access_ends and access_starts >= access_ends) or (
+            access_starts and access_starts >= request.access_ends
+        ):
+            raise self.AccessRequestInvalidDuration(
+                "Access start date cannot be the same or later than the access end date"
+            )
+        elif access_ends and access_ends <= request.access_starts:
+            raise self.AccessRequestInvalidDuration(
+                "Access end date cannot be the same or earlier than the access start date"
+            )
 
-    async def handle_status_changed(
+        if access_starts:
+            update |= {
+                "access_starts": access_starts,
+            }
+        if access_ends:
+            update |= {"access_ends": access_ends}
+
+    async def _handle_status_changed(
         self, status: str | None, request: AccessRequest, iva_id: str | None
     ) -> None:
         """Handles when the status of an access request has changed
@@ -320,22 +323,6 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 await self._event_publisher.publish_request_denied(request=request)
             elif status == AccessRequestStatus.ALLOWED:
                 await self._event_publisher.publish_request_allowed(request=request)
-
-    async def handle_access_date_changed(
-        self,
-        access_starts: UTCDatetime | None,
-        access_ends: UTCDatetime | None,
-        request: AccessRequest,
-    ) -> None:
-        """Handles the publication of events when the access start or end dates have changed"""
-        # if access_starts:
-        #     await self._event_publisher.publish_request_access_starts_changed(
-        #         request=request
-        #     )
-        # if access_ends:
-        #     await self._event_publisher.publish_request_access_ends_changed(
-        #         request=request
-        #     )
 
     async def update(
         self,
@@ -370,39 +357,29 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             log.error(not_found_error, extra={"access_request_id": access_request_id})
             raise not_found_error from error
 
-        self.handle_generic_errors(
-            user_id=user_id, auth_context=auth_context, patch_data=patch_data
-        )
-        self.handle_status_errors(iva_id=iva_id, status=status, request=request)
-        self.handle_dates_errors(
-            access_starts=access_starts, access_ends=access_ends, request=request
-        )
-
         update: dict[str, Any] = {
             "iva_id": iva_id,
             "changed_by": user_id,
         }
 
-        change_time = now_as_utc()
+        self._handle_basic_patch_request_check(
+            user_id=user_id, auth_context=auth_context, patch_data=patch_data
+        )
 
-        if status:
-            update |= {"status": status, "status_changed": change_time}
-        if access_starts:
-            update |= {
-                "access_starts": access_starts,
-                "access_starts_changed": change_time,
-            }
-        if access_ends:
-            update |= {"access_ends": access_ends, "access_ends_changed": change_time}
+        self._handle_status_errors_update(
+            iva_id=iva_id, status=status, request=request, update=update
+        )
+        self._handle_validity_period_update(
+            access_starts=access_starts,
+            access_ends=access_ends,
+            request=request,
+            update=update,
+        )
 
         modified_request = request.model_copy(update=update)
-
         await self._request_dao.update(modified_request)
 
-        await self.handle_status_changed(status=status, iva_id=iva_id, request=request)
-        await self.handle_access_date_changed(
-            access_starts=access_starts, access_ends=access_ends, request=request
-        )
+        await self._handle_status_changed(status=status, iva_id=iva_id, request=request)
 
     @staticmethod
     def _hide_internals(request: AccessRequest) -> AccessRequest:

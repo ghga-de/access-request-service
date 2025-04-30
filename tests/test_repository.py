@@ -29,6 +29,7 @@ from hexkit.custom_types import ID
 from ars.core.models import (
     AccessRequest,
     AccessRequestCreationData,
+    AccessRequestPatchData,
     AccessRequestStatus,
     Dataset,
 )
@@ -595,8 +596,9 @@ async def test_set_status_to_allowed():
 
     await repository.update(
         "request-id-4",
-        iva_id="some-iva",
-        status=AccessRequestStatus.ALLOWED,
+        patch_data=AccessRequestPatchData(
+            iva_id="some-iva", status=AccessRequestStatus.ALLOWED
+        ),
         auth_context=auth_context_steward,
     )
 
@@ -633,7 +635,7 @@ async def test_set_status_to_allowed_reusing_iva():
 
     await repository.update(
         "request-id-6",
-        status=AccessRequestStatus.ALLOWED,
+        patch_data=AccessRequestPatchData(status=AccessRequestStatus.ALLOWED),
         auth_context=auth_context_steward,
     )
 
@@ -669,8 +671,9 @@ async def test_set_status_to_allowed_overriding_iva():
 
     await repository.update(
         "request-id-6",
-        iva_id="some-other-iva-of-john",
-        status=AccessRequestStatus.ALLOWED,
+        patch_data=AccessRequestPatchData(
+            iva_id="some-other-iva-of-john", status=AccessRequestStatus.ALLOWED
+        ),
         auth_context=auth_context_steward,
     )
 
@@ -710,7 +713,7 @@ async def test_set_status_to_allowed_without_iva():
     ):
         await repository.update(
             "request-id-4",
-            status=AccessRequestStatus.ALLOWED,
+            patch_data=AccessRequestPatchData(status=AccessRequestStatus.ALLOWED),
             auth_context=auth_context_steward,
         )
 
@@ -726,8 +729,9 @@ async def test_set_status_to_allowed_with_error_when_granting_access():
     ):
         await repository.update(
             "request-id-4",
-            iva_id="iva-id-1",
-            status=AccessRequestStatus.ALLOWED,
+            patch_data=AccessRequestPatchData(
+                iva_id="iva-id-1", status=AccessRequestStatus.ALLOWED
+            ),
             auth_context=auth_context_steward,
         )
 
@@ -750,8 +754,9 @@ async def test_set_status_to_allowed_when_it_is_already_allowed():
     ):
         await repository.update(
             "request-id-1",
-            iva_id="iva-id-1",
-            status=AccessRequestStatus.ALLOWED,
+            patch_data=AccessRequestPatchData(
+                iva_id="iva-id-1", status=AccessRequestStatus.ALLOWED
+            ),
             auth_context=auth_context_steward,
         )
 
@@ -771,7 +776,7 @@ async def test_set_status_to_allowed_when_it_is_already_denied():
     ):
         await repository.update(
             "request-id-3",
-            status=AccessRequestStatus.ALLOWED,
+            patch_data=AccessRequestPatchData(status=AccessRequestStatus.ALLOWED),
             auth_context=auth_context_steward,
         )
 
@@ -785,7 +790,7 @@ async def test_set_status_of_non_existing_request():
     ):
         await repository.update(
             "request-non-existing-id",
-            status=AccessRequestStatus.ALLOWED,
+            patch_data=AccessRequestPatchData(status=AccessRequestStatus.ALLOWED),
             auth_context=auth_context_steward,
         )
 
@@ -799,7 +804,7 @@ async def test_set_status_when_not_a_data_steward():
     with pytest.raises(repository.AccessRequestError, match="Not authorized"):
         await repository.update(
             "request-id-4",
-            status=AccessRequestStatus.ALLOWED,
+            patch_data=AccessRequestPatchData(status=AccessRequestStatus.ALLOWED),
             auth_context=auth_context_doe,
         )
 

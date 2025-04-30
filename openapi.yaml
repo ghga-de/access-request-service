@@ -9,25 +9,11 @@ components:
           format: date-time
           title: Access Ends
           type: string
-        access_ends_changed:
-          anyOf:
-          - format: date-time
-            type: string
-          - type: 'null'
-          description: Last change date of the access end date of this request
-          title: Access Ends Changed
         access_starts:
           description: Requested start date of access
           format: date-time
           title: Access Starts
           type: string
-        access_starts_changed:
-          anyOf:
-          - format: date-time
-            type: string
-          - type: 'null'
-          description: Last change date of the access start date of this request
-          title: Access Starts Changed
         changed_by:
           anyOf:
           - type: string
@@ -169,10 +155,6 @@ components:
           - $ref: '#/components/schemas/AccessRequestStatus'
           - type: 'null'
           description: The new status of this access request
-      required:
-      - status
-      - access_starts
-      - access_ends
       title: AccessRequestPatchData
       type: object
     AccessRequestStatus:

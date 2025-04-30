@@ -319,7 +319,9 @@ async def test_patch_access_request(
     async with kafka.record_events(in_topic=topic) as recorder:
         response = await rest.rest_client.patch(
             f"/access-requests/{access_request_id}",
-            json={"status": "allowed"},
+            json={
+                "status": "allowed",
+            },
             headers=auth_headers_steward,
         )
         assert response.status_code == 204
@@ -447,13 +449,13 @@ async def test_must_be_data_steward_to_patch_access_request(
     # set status without authentication
     response = await client.patch(
         f"/access-requests/{access_request_id}",
-        json={"status": "allowed"},
+        json={"patch_data": {"status": "allowed"}},
     )
     assert response.status_code == 403
     # set status to allowed as the same user
     response = await client.patch(
         f"/access-requests/{access_request_id}",
-        json={"status": "allowed"},
+        json={"patch_data": {"status": "allowed"}},
         headers=auth_headers_doe,
     )
     assert response.status_code == 403
