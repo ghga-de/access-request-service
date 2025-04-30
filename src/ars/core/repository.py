@@ -275,7 +275,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 "Access request validity period cannot be changed after the request was processed"
             )
         if (access_starts and access_ends and access_starts >= access_ends) or (
-            access_starts and access_starts >= request.access_ends
+            access_starts and not access_ends and access_starts >= request.access_ends
         ):
             raise self.AccessRequestInvalidDuration(
                 "Access start date cannot be the same or later than the access end date"

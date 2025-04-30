@@ -321,6 +321,8 @@ async def test_patch_access_request(
             f"/access-requests/{access_request_id}",
             json={
                 "status": "allowed",
+                "access_starts": (DATE_NOW + ONE_YEAR).isoformat(),
+                "access_ends": (DATE_NOW + 2 * ONE_YEAR).isoformat(),
             },
             headers=auth_headers_steward,
         )
@@ -379,6 +381,12 @@ async def test_patch_access_request(
     assert request["status"] == "allowed"
     assert request["status_changed"]
     assert request["changed_by"] == "id-of-rod-steward@ghga.de"  # can see internals
+    assert request["access_starts"] == (DATE_NOW + ONE_YEAR).isoformat().replace(
+        "+00:00", "Z"
+    )
+    assert request["access_ends"] == (DATE_NOW + 2 * ONE_YEAR).isoformat().replace(
+        "+00:00", "Z"
+    )
 
 
 async def test_patch_access_request_with_another_iva(
@@ -408,7 +416,10 @@ async def test_patch_access_request_with_another_iva(
     # set status to allowed as data steward
     response = await rest.rest_client.patch(
         f"/access-requests/{access_request_id}",
-        json={"iva_id": "another-iva", "status": "allowed"},
+        json={
+            "iva_id": "another-iva",
+            "status": "allowed",
+        },
         headers=auth_headers_steward,
     )
     assert response.status_code == 204
@@ -430,6 +441,60 @@ async def test_patch_access_request_with_another_iva(
     assert request["status"] == "allowed"
     assert request["status_changed"]
     assert request["changed_by"] is None
+
+
+async def test_patch_only_access_duration(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+    httpx_mock: HTTPXMock,
+):
+    """Test that data stewards get an error when patching non-existing requests."""
+    # mock setting the access grant
+    httpx_mock.add_response(
+        method="POST",
+        url="http://access/users/id-of-john-doe@ghga.de"
+        "/ivas/another-iva/datasets/DS001",
+        status_code=204,
+    )
+
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={
+            "access_starts": (DATE_NOW + ONE_YEAR).isoformat(),
+            "access_ends": (DATE_NOW + 2 * ONE_YEAR).isoformat(),
+        },
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 204
+
+    # get request back as user
+    response = await client.get("/access-requests", headers=auth_headers_doe)
+
+    assert response.status_code == 200
+    requests = response.json()
+
+    assert isinstance(requests, list)
+    assert len(requests) == 1
+    request = requests[0]
+    assert request["id"] == access_request_id
+    assert request["user_id"] == "id-of-john-doe@ghga.de"
+    # make sure that the dates have been changed
+    assert request["access_starts"] == (DATE_NOW + ONE_YEAR).isoformat().replace(
+        "+00:00", "Z"
+    )
+    assert request["access_ends"] == (DATE_NOW + 2 * ONE_YEAR).isoformat().replace(
+        "+00:00", "Z"
+    )
 
 
 async def test_must_be_data_steward_to_patch_access_request(
@@ -473,3 +538,159 @@ async def test_patch_non_existing_access_request(
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Access request not found"
+
+
+async def test_patch_invalid_access_start_date(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+    httpx_mock: HTTPXMock,
+):
+    """Test that data stewards get an error when patching non-existing requests."""
+    # mock setting the access grant
+    httpx_mock.add_response(
+        method="POST",
+        url="http://access/users/id-of-john-doe@ghga.de/ivas/some-iva/datasets/DS001",
+        status_code=204,
+    )
+
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"access_starts": (DATE_NOW + 2 * ONE_YEAR).isoformat()},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"]
+        == "Access start date cannot be the same or later than the access end date"
+    )
+
+
+async def test_patch_invalid_access_end_date(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+    httpx_mock: HTTPXMock,
+):
+    """Test that data stewards get an error when patching non-existing requests."""
+    # mock setting the access grant
+    httpx_mock.add_response(
+        method="POST",
+        url="http://access/users/id-of-john-doe@ghga.de/ivas/some-iva/datasets/DS001",
+        status_code=204,
+    )
+
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"access_ends": DATE_NOW.isoformat()},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"]
+        == "Access end date cannot be the same or earlier than the access start date"
+    )
+
+
+async def test_patch_invalid_access_duration(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+    httpx_mock: HTTPXMock,
+):
+    """Test that data stewards get an error when patching non-existing requests."""
+    # mock setting the access grant
+    httpx_mock.add_response(
+        method="POST",
+        url="http://access/users/id-of-john-doe@ghga.de/ivas/some-iva/datasets/DS001",
+        status_code=204,
+    )
+
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={
+            "access_starts": DATE_NOW.isoformat(),
+            "access_ends": DATE_NOW.isoformat(),
+        },
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"]
+        == "Access start date cannot be the same or later than the access end date"
+    )
+
+
+async def test_patch_access_dates_in_processed_request(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+    httpx_mock: HTTPXMock,
+):
+    """Test that data stewards get an error when patching non-existing requests."""
+    # mock setting the access grant
+    httpx_mock.add_response(
+        method="POST",
+        url="http://access/users/id-of-john-doe@ghga.de/ivas/some-iva/datasets/DS001",
+        status_code=204,
+    )
+
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    # set status to allowed as data steward
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={
+            "status": "allowed",
+        },
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 204
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={
+            "access_starts": (DATE_NOW + ONE_YEAR).isoformat(),
+            "access_ends": (DATE_NOW + 2 * ONE_YEAR).isoformat(),
+        },
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"]
+        == "Access request validity period cannot be changed after the request was processed"
+    )
