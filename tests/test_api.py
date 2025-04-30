@@ -539,13 +539,42 @@ async def test_patch_non_existing_access_request(
     assert response.json()["detail"] == "Access request not found"
 
 
+async def test_patch_invalid_access_duration(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+):
+    """Test that data stewards get an error when patching with an invalid access duration."""
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={
+            "access_starts": DATE_NOW.isoformat(),
+            "access_ends": DATE_NOW.isoformat(),
+        },
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"]
+        == "Access start date cannot be the same or later than the access end date"
+    )
+
+
 async def test_patch_invalid_access_start_date(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
-    httpx_mock: HTTPXMock,
 ):
-    """Test that data stewards get an error when patching non-existing requests."""
+    """Test that data stewards get an error when patching an invalid access start date."""
     client = rest.rest_client
     # create access request as user
     response = await client.post(
@@ -571,9 +600,8 @@ async def test_patch_invalid_access_end_date(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
-    httpx_mock: HTTPXMock,
 ):
-    """Test that data stewards get an error when patching non-existing requests."""
+    """Test that data stewards get an error when patching an invalid access end date."""
     client = rest.rest_client
     # create access request as user
     response = await client.post(
@@ -595,44 +623,13 @@ async def test_patch_invalid_access_end_date(
     )
 
 
-async def test_patch_invalid_access_duration(
-    rest: RestFixture,
-    auth_headers_doe: dict[str, str],
-    auth_headers_steward: dict[str, str],
-    httpx_mock: HTTPXMock,
-):
-    """Test that data stewards get an error when patching non-existing requests."""
-    client = rest.rest_client
-    # create access request as user
-    response = await client.post(
-        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
-    )
-    assert response.status_code == 201
-    access_request_id = response.json()
-    assert_is_uuid(access_request_id)
-
-    response = await rest.rest_client.patch(
-        f"/access-requests/{access_request_id}",
-        json={
-            "access_starts": DATE_NOW.isoformat(),
-            "access_ends": DATE_NOW.isoformat(),
-        },
-        headers=auth_headers_steward,
-    )
-    assert response.status_code == 422
-    assert (
-        response.json()["detail"]
-        == "Access start date cannot be the same or later than the access end date"
-    )
-
-
 async def test_patch_access_dates_in_processed_request(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
     httpx_mock: HTTPXMock,
 ):
-    """Test that data stewards get an error when patching non-existing requests."""
+    """Test that data stewards get an error when patching a new duration to an already processed request."""
     # mock setting the access grant
     httpx_mock.add_response(
         method="POST",
