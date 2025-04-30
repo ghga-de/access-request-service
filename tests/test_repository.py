@@ -901,7 +901,7 @@ async def test_set_status_when_not_a_data_steward():
 
 async def test_set_access_date_when_request_is_already_allowed():
     """Test setting the access duration when request already allowed."""
-    request = await access_request_dao.get_by_id("request-id-4")
+    request = await access_request_dao.get_by_id("request-id-1")
     assert request.status == AccessRequestStatus.ALLOWED
 
     with pytest.raises(
@@ -909,7 +909,7 @@ async def test_set_access_date_when_request_is_already_allowed():
         match="Access request validity period cannot be changed after the request was processed",
     ):
         await repository.update(
-            "request-id-4",
+            "request-id-1",
             patch_data=AccessRequestPatchData(
                 access_starts=utc_datetime(2022, 1, 1, 0, 0),
                 access_ends=utc_datetime(2022, 12, 31, 23, 59),
