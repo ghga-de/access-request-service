@@ -624,6 +624,52 @@ async def test_set_status_to_allowed():
     )
 
 
+async def test_set_status_to_allowed_with_date_change():
+    """Test setting the status of a request from pending to allowed."""
+    original_request = await access_request_dao.get_by_id("request-id-4")
+    original_dict = original_request.model_dump()
+    assert original_dict.pop("iva_id") is None
+    assert original_dict.pop("status") == AccessRequestStatus.PENDING
+    assert original_dict.pop("status_changed") is None
+    assert original_dict.pop("changed_by") is None
+    assert original_dict.pop("access_starts") == utc_datetime(2021, 1, 1, 0, 0)
+    assert original_dict.pop("access_ends") == utc_datetime(2021, 12, 31, 23, 59)
+
+    await repository.update(
+        "request-id-4",
+        patch_data=AccessRequestPatchData(
+            iva_id="some-iva",
+            status=AccessRequestStatus.ALLOWED,
+            access_starts=utc_datetime(2022, 1, 1, 0, 0),
+            access_ends=utc_datetime(2022, 12, 31, 23, 59),
+        ),
+        auth_context=auth_context_steward,
+    )
+
+    changed_request = access_request_dao.last_upsert
+    assert changed_request is not None
+    changed_dict = changed_request.model_dump()
+    assert changed_dict.pop("status") == AccessRequestStatus.ALLOWED
+    assert changed_dict.pop("iva_id") == "some-iva"
+    assert changed_dict.pop("access_starts") == utc_datetime(2022, 1, 1, 0, 0)
+    assert changed_dict.pop("access_ends") == utc_datetime(2022, 12, 31, 23, 59)
+    status_changed = changed_dict.pop("status_changed")
+    assert status_changed is not None
+    assert 0 <= (now_as_utc() - status_changed).seconds < 5
+    assert changed_dict.pop("changed_by") == "id-of-rod-steward@ghga.de"
+    assert changed_dict == original_dict
+
+    expected_event = MockAccessRequestEvent(
+        changed_request.user_id, changed_request.dataset_id, "allowed"
+    )
+    assert event_publisher.events == [expected_event]
+
+    assert access_grants.last_grant == (
+        "to id-of-john-doe@ghga.de with some-iva for DS007"
+        " from 2022-01-01 00:00:00+00:00 until 2022-12-31 23:59:00+00:00"
+    )
+
+
 async def test_set_status_to_allowed_reusing_iva():
     """Test setting the status of a request to allowed reusing the IVA."""
     original_request = await access_request_dao.get_by_id("request-id-6")

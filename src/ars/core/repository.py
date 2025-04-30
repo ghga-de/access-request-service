@@ -293,13 +293,23 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             update |= {"access_ends": access_ends}
 
     async def _handle_status_changed(
-        self, status: str | None, request: AccessRequest, iva_id: str | None
+        self,
+        request: AccessRequest,
+        patch_data: AccessRequestPatchData,
+        iva_id: str | None = None,
     ) -> None:
         """Handles when the status of an access request has changed
 
         Raises:
         - `AccessRequestServerError` if the grant could not be registered.
         """
+        status, access_starts, access_ends = (
+            patch_data.status,
+            patch_data.access_starts,
+            patch_data.access_ends,
+        )
+        access_starts = access_starts or request.access_starts
+        access_ends = access_ends or request.access_ends
         if status:
             if status == AccessRequestStatus.ALLOWED:
                 # Try to register as download access grant
@@ -308,8 +318,8 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                         user_id=request.user_id,
                         iva_id=cast(str, iva_id),  # has already been checked above
                         dataset_id=request.dataset_id,
-                        valid_from=request.access_starts,
-                        valid_until=request.access_ends,
+                        valid_from=access_starts,
+                        valid_until=access_ends,
                     )
                 except self._access_grants.AccessGrantsError as error:
                     # roll back the status update
@@ -383,7 +393,9 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         modified_request = request.model_copy(update=update)
         await self._request_dao.update(modified_request)
 
-        await self._handle_status_changed(status=status, iva_id=iva_id, request=request)
+        await self._handle_status_changed(
+            patch_data=patch_data, request=request, iva_id=iva_id
+        )
 
     @staticmethod
     def _hide_internals(request: AccessRequest) -> AccessRequest:
