@@ -333,9 +333,10 @@ async def test_patch_access_request(
     assert grant_request
     validity = json.loads(grant_request.content)
     # validity period may start a bit later because integration tests can be slow
-    assert_same_datetime(validity["valid_from"], CREATION_DATA["access_starts"], 300)
+    assert_same_datetime(validity["valid_from"], (DATE_NOW + ONE_YEAR).isoformat(), 300)
     assert (
-        validity["valid_until"].replace("Z", "+00:00") == CREATION_DATA["access_ends"]
+        validity["valid_until"].replace("Z", "+00:00")
+        == (DATE_NOW + 2 * ONE_YEAR).isoformat()
     )
 
     # check that an event was published for 'access request allowed'
