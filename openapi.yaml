@@ -135,14 +135,14 @@ components:
           - format: date-time
             type: string
           - type: 'null'
-          description: Requested end date of access
+          description: Modified end date of access
           title: Access Ends
         access_starts:
           anyOf:
           - format: date-time
             type: string
           - type: 'null'
-          description: Requested start date of access
+          description: Modified start date of access
           title: Access Starts
         iva_id:
           anyOf:
@@ -251,8 +251,8 @@ paths:
       - AccessRequests
   /access-requests/{access_request_id}:
     patch:
-      description: Endpoint used to change an access request status, access start,
-        or access end date
+      description: Endpoint used to set the status or modify other fields of an access
+        request
       operationId: patch_access_request
       parameters:
       - in: path
@@ -278,7 +278,7 @@ paths:
           description: Validation error in submitted data.
       security:
       - HTTPBearer: []
-      summary: Set status, access start, or access end date of an access request
+      summary: Set status or modify other fields of an access request
       tags:
       - AccessRequests
   /health:

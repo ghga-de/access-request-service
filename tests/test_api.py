@@ -746,7 +746,7 @@ async def test_patch_everything_when_allowing_request(
     # make sure that everything has been changed
     assert request["id"] == access_request_id
     assert request["user_id"] == "id-of-john-doe@ghga.de"
-    assert request["iva_id"] == "another-iva"
+    assert request["iva_id"] == "new-iva"
     assert request["dataset_id"] == "DS001"
     assert request["status"] == "allowed"
     assert request["status_changed"]
