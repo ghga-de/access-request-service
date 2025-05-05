@@ -133,11 +133,9 @@ class AccessRequestPatchData(BaseDto):
         default=None,
         description="The new status of this access request",
     )
-
     access_starts: UTCDatetime | None = Field(
-        default=None, description="Requested start date of access"
+        default=None, description="Modified start date of access"
     )
-
     access_ends: UTCDatetime | None = Field(
-        default=None, description="Requested end date of access"
+        default=None, description="Modified end date of access"
     )

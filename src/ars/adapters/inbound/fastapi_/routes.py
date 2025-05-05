@@ -131,8 +131,8 @@ async def get_access_requests(
     "/access-requests/{access_request_id}",
     operation_id="patch_access_request",
     tags=["AccessRequests"],
-    summary="Set status, access start, or access end date of an access request",
-    description="Endpoint used to change an access request status, access start, or access end date",
+    summary="Set status or modify other fields of an access request",
+    description="Endpoint used to set the status or modify other fields of an access request",
     responses={
         204: {"description": "Access request was successfully changed"},
         403: {"description": "Not authorized to change access request."},
@@ -159,10 +159,10 @@ async def patch_access_request(
     except repository.AccessRequestNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except (
-        repository.AccessRequestInvalidState,
+        repository.AccessRequestClosed,
         repository.AccessRequestMissingIva,
-        repository.AccessRequestPatchNoArgsError,
         repository.AccessRequestInvalidDuration,
+        repository.AccessRequestServerError,
     ) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:

@@ -54,13 +54,15 @@ def iso2timestamp(iso_date: str) -> float:
     return datetime.fromisoformat(iso_date).timestamp()
 
 
+def norm_utc(date: str) -> str:
+    """Replace Z with +00:00 in the given date string."""
+    return date[:-1] + "+00:00" if date.endswith("Z") else date
+
+
 def assert_same_datetime(date1: str, date2: str, max_diff_seconds=5) -> None:
     """Assert that the two given dates in iso format are very close."""
     assert (
-        abs(
-            iso2timestamp(date2.replace("Z", "+00:00"))
-            - iso2timestamp(date1.replace("Z", "+00:00"))
-        )
+        abs(iso2timestamp(norm_utc(date2)) - iso2timestamp(norm_utc(date1)))
         < max_diff_seconds
     )
 
@@ -319,11 +321,7 @@ async def test_patch_access_request(
     async with kafka.record_events(in_topic=topic) as recorder:
         response = await rest.rest_client.patch(
             f"/access-requests/{access_request_id}",
-            json={
-                "status": "allowed",
-                "access_starts": (DATE_NOW + ONE_YEAR).isoformat(),
-                "access_ends": (DATE_NOW + 2 * ONE_YEAR).isoformat(),
-            },
+            json={"status": "allowed"},
             headers=auth_headers_steward,
         )
         assert response.status_code == 204
@@ -333,11 +331,8 @@ async def test_patch_access_request(
     assert grant_request
     validity = json.loads(grant_request.content)
     # validity period may start a bit later because integration tests can be slow
-    assert_same_datetime(validity["valid_from"], (DATE_NOW + ONE_YEAR).isoformat(), 300)
-    assert (
-        validity["valid_until"].replace("Z", "+00:00")
-        == (DATE_NOW + 2 * ONE_YEAR).isoformat()
-    )
+    assert_same_datetime(validity["valid_from"], CREATION_DATA["access_starts"], 300)
+    assert norm_utc(validity["valid_until"]) == CREATION_DATA["access_ends"]
 
     # check that an event was published for 'access request allowed'
     assert len(recorder.recorded_events) == 1
@@ -365,6 +360,8 @@ async def test_patch_access_request(
     assert request["status"] == "allowed"
     assert request["status_changed"]
     assert request["changed_by"] is None  # cannot see internals
+    assert_same_datetime(request["access_starts"], CREATION_DATA["access_starts"], 300)
+    assert norm_utc(request["access_ends"]) == CREATION_DATA["access_ends"]
 
     # get request as data steward
     response = await client.get("/access-requests", headers=auth_headers_steward)
@@ -382,12 +379,8 @@ async def test_patch_access_request(
     assert request["status"] == "allowed"
     assert request["status_changed"]
     assert request["changed_by"] == "id-of-rod-steward@ghga.de"  # can see internals
-    assert request["access_starts"] == (DATE_NOW + ONE_YEAR).isoformat().replace(
-        "+00:00", "Z"
-    )
-    assert request["access_ends"] == (DATE_NOW + 2 * ONE_YEAR).isoformat().replace(
-        "+00:00", "Z"
-    )
+    assert_same_datetime(request["access_starts"], CREATION_DATA["access_starts"], 300)
+    assert norm_utc(request["access_ends"]) == CREATION_DATA["access_ends"]
 
 
 async def test_patch_access_request_with_another_iva(
@@ -417,10 +410,7 @@ async def test_patch_access_request_with_another_iva(
     # set status to allowed as data steward
     response = await rest.rest_client.patch(
         f"/access-requests/{access_request_id}",
-        json={
-            "iva_id": "another-iva",
-            "status": "allowed",
-        },
+        json={"iva_id": "another-iva", "status": "allowed"},
         headers=auth_headers_steward,
     )
     assert response.status_code == 204
@@ -442,51 +432,6 @@ async def test_patch_access_request_with_another_iva(
     assert request["status"] == "allowed"
     assert request["status_changed"]
     assert request["changed_by"] is None
-
-
-async def test_patch_only_access_duration(
-    rest: RestFixture,
-    auth_headers_doe: dict[str, str],
-    auth_headers_steward: dict[str, str],
-):
-    """Test that data stewards can change the access duration of a request by itself."""
-    client = rest.rest_client
-    # create access request as user
-    response = await client.post(
-        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
-    )
-    assert response.status_code == 201
-    access_request_id = response.json()
-    assert_is_uuid(access_request_id)
-
-    response = await rest.rest_client.patch(
-        f"/access-requests/{access_request_id}",
-        json={
-            "access_starts": (DATE_NOW + ONE_YEAR).isoformat(),
-            "access_ends": (DATE_NOW + 2 * ONE_YEAR).isoformat(),
-        },
-        headers=auth_headers_steward,
-    )
-    assert response.status_code == 204
-
-    # get request back as user
-    response = await client.get("/access-requests", headers=auth_headers_doe)
-
-    assert response.status_code == 200
-    requests = response.json()
-
-    assert isinstance(requests, list)
-    assert len(requests) == 1
-    request = requests[0]
-    assert request["id"] == access_request_id
-    assert request["user_id"] == "id-of-john-doe@ghga.de"
-    # make sure that the dates have been changed
-    assert request["access_starts"] == (DATE_NOW + ONE_YEAR).isoformat().replace(
-        "+00:00", "Z"
-    )
-    assert request["access_ends"] == (DATE_NOW + 2 * ONE_YEAR).isoformat().replace(
-        "+00:00", "Z"
-    )
 
 
 async def test_must_be_data_steward_to_patch_access_request(
@@ -532,12 +477,104 @@ async def test_patch_non_existing_access_request(
     assert response.json()["detail"] == "Access request not found"
 
 
+async def test_patch_only_iva_id(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+):
+    """Test that data stewards can change just the IVA ID of a request."""
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        # note: the data steward is not bound to the date restrictions
+        json={"iva_id": "another-iva"},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 204
+
+    # get request back as user
+    response = await client.get("/access-requests", headers=auth_headers_doe)
+
+    assert response.status_code == 200
+    requests = response.json()
+    assert isinstance(requests, list)
+    assert len(requests) == 1
+    request = requests[0]
+
+    # make sure that only the IVA ID has been changed
+    assert request["id"] == access_request_id
+    assert request["user_id"] == "id-of-john-doe@ghga.de"
+    assert request["iva_id"] == "another-iva"
+    assert request["status"] == "pending"
+    assert request["status_changed"] is None
+    assert request["changed_by"] is None
+    assert_same_datetime(request["access_starts"], CREATION_DATA["access_starts"], 300)
+    assert norm_utc(request["access_ends"]) == CREATION_DATA["access_ends"]
+
+
+async def test_patch_only_access_duration(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+):
+    """Test that data stewards can change just the access duration of a request."""
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    access_starts = (DATE_NOW + ONE_YEAR).isoformat()
+    access_ends = (DATE_NOW + 4 * ONE_YEAR).isoformat()
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        # note: the data steward is not bound to the date restrictions
+        json={
+            "access_starts": access_starts,
+            "access_ends": access_ends,
+        },
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 204
+
+    # get request back as user
+    response = await client.get("/access-requests", headers=auth_headers_doe)
+
+    assert response.status_code == 200
+    requests = response.json()
+    assert isinstance(requests, list)
+    assert len(requests) == 1
+    request = requests[0]
+
+    # make sure that only the access duration has been changed
+    assert request["id"] == access_request_id
+    assert request["user_id"] == "id-of-john-doe@ghga.de"
+    assert request["iva_id"] == "some-iva"
+    assert request["status"] == "pending"
+    assert request["status_changed"] is None
+    assert request["changed_by"] is None
+    assert norm_utc(request["access_starts"]) == access_starts
+    assert norm_utc(request["access_ends"]) == access_ends
+
+
 async def test_patch_invalid_access_duration(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
 ):
-    """Test that data stewards get an error when patching with an invalid access duration."""
+    """Test that data stewards get an error when providing an invalid duration."""
     client = rest.rest_client
     # create access request as user
     response = await client.post(
@@ -546,83 +583,44 @@ async def test_patch_invalid_access_duration(
     assert response.status_code == 201
     access_request_id = response.json()
     assert_is_uuid(access_request_id)
+
+    expected_message = "Access end date must be later than access start date"
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"access_ends": CREATION_DATA["access_starts"]},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == expected_message
+
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"access_ends": CREATION_DATA["access_starts"]},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == expected_message
 
     response = await rest.rest_client.patch(
         f"/access-requests/{access_request_id}",
         json={
-            "access_starts": DATE_NOW.isoformat(),
-            "access_ends": DATE_NOW.isoformat(),
+            "access_starts": CREATION_DATA["access_ends"],
+            "access_ends": CREATION_DATA["access_starts"],
         },
         headers=auth_headers_steward,
     )
     assert response.status_code == 422
-    assert (
-        response.json()["detail"]
-        == "Access start date cannot be the same or later than the access end date"
-    )
+    assert response.json()["detail"] == expected_message
 
 
-async def test_patch_invalid_access_start_date(
-    rest: RestFixture,
-    auth_headers_doe: dict[str, str],
-    auth_headers_steward: dict[str, str],
-):
-    """Test that data stewards get an error when patching an invalid access start date."""
-    client = rest.rest_client
-    # create access request as user
-    response = await client.post(
-        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
-    )
-    assert response.status_code == 201
-    access_request_id = response.json()
-    assert_is_uuid(access_request_id)
-
-    response = await rest.rest_client.patch(
-        f"/access-requests/{access_request_id}",
-        json={"access_starts": (DATE_NOW + 2 * ONE_YEAR).isoformat()},
-        headers=auth_headers_steward,
-    )
-    assert response.status_code == 422
-    assert (
-        response.json()["detail"]
-        == "Access start date cannot be the same or later than the access end date"
-    )
-
-
-async def test_patch_invalid_access_end_date(
-    rest: RestFixture,
-    auth_headers_doe: dict[str, str],
-    auth_headers_steward: dict[str, str],
-):
-    """Test that data stewards get an error when patching an invalid access end date."""
-    client = rest.rest_client
-    # create access request as user
-    response = await client.post(
-        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
-    )
-    assert response.status_code == 201
-    access_request_id = response.json()
-    assert_is_uuid(access_request_id)
-
-    response = await rest.rest_client.patch(
-        f"/access-requests/{access_request_id}",
-        json={"access_ends": DATE_NOW.isoformat()},
-        headers=auth_headers_steward,
-    )
-    assert response.status_code == 422
-    assert (
-        response.json()["detail"]
-        == "Access end date cannot be the same or earlier than the access start date"
-    )
-
-
-async def test_patch_access_dates_in_processed_request(
+async def test_patch_access_duration_for_allowed_request(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
     httpx_mock: HTTPXMock,
 ):
-    """Test that data stewards get an error when patching a new duration to an already processed request."""
+    """Test that data stewards cannot change the duration of an allowed request."""
     # mock setting the access grant
     httpx_mock.add_response(
         method="POST",
@@ -642,23 +640,116 @@ async def test_patch_access_dates_in_processed_request(
     # set status to allowed as data steward
     response = await rest.rest_client.patch(
         f"/access-requests/{access_request_id}",
+        json={"status": "allowed"},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 204
+
+    # try to change the end date of the request
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"access_ends": (DATE_NOW + 2 * ONE_YEAR).isoformat()},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Access request has already been processed"
+
+
+async def test_patch_state_change_of_denied_request(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+):
+    """Test that data stewards cannot change the state of a denied request."""
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    # set status to allowed as data steward
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"status": "denied"},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 204
+
+    # try to change the state of the request
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"status": "pending"},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Access request has already been processed"
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
+        json={"status": "allowed"},
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Access request has already been processed"
+
+
+async def test_patch_everything_when_allowing_request(
+    rest: RestFixture,
+    auth_headers_doe: dict[str, str],
+    auth_headers_steward: dict[str, str],
+    httpx_mock: HTTPXMock,
+):
+    """Test that data stewards can modify multiple fields when allowing a request."""
+    # mock setting the access grant
+    httpx_mock.add_response(
+        method="POST",
+        url="http://access/users/id-of-john-doe@ghga.de/ivas/new-iva/datasets/DS001",
+        status_code=204,
+    )
+
+    client = rest.rest_client
+    # create access request as user
+    response = await client.post(
+        "/access-requests", json=CREATION_DATA, headers=auth_headers_doe
+    )
+    assert response.status_code == 201
+    access_request_id = response.json()
+    assert_is_uuid(access_request_id)
+
+    access_starts = (DATE_NOW + 2 * ONE_YEAR).isoformat()
+    access_ends = (DATE_NOW + 3 * ONE_YEAR).isoformat()
+
+    # set status to allowed and patch everything as data steward
+    response = await rest.rest_client.patch(
+        f"/access-requests/{access_request_id}",
         json={
             "status": "allowed",
+            "iva_id": "new-iva",
+            "access_starts": access_starts,
+            "access_ends": access_ends,
         },
         headers=auth_headers_steward,
     )
     assert response.status_code == 204
 
-    response = await rest.rest_client.patch(
-        f"/access-requests/{access_request_id}",
-        json={
-            "access_starts": (DATE_NOW + ONE_YEAR).isoformat(),
-            "access_ends": (DATE_NOW + 2 * ONE_YEAR).isoformat(),
-        },
-        headers=auth_headers_steward,
-    )
-    assert response.status_code == 422
-    assert (
-        response.json()["detail"]
-        == "Access request validity period cannot be changed after the request was processed"
-    )
+    # get request as data steward
+    response = await client.get("/access-requests", headers=auth_headers_steward)
+
+    assert response.status_code == 200
+    requests = response.json()
+    assert isinstance(requests, list)
+    assert len(requests) == 1
+    request = requests[0]
+
+    # make sure that everything has been changed
+    assert request["id"] == access_request_id
+    assert request["user_id"] == "id-of-john-doe@ghga.de"
+    assert request["iva_id"] == "another-iva"
+    assert request["dataset_id"] == "DS001"
+    assert request["status"] == "allowed"
+    assert request["status_changed"]
+    assert request["changed_by"] == "id-of-rod-steward@ghga.de"
+    assert norm_utc(request["access_starts"]) == access_starts
+    assert norm_utc(request["access_ends"]) == access_ends

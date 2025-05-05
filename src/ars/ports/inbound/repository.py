@@ -41,14 +41,11 @@ class AccessRequestRepositoryPort(ABC):
     class AccessRequestMissingIva(AccessRequestError):
         """Error raised when an IVA is needed, but not provided."""
 
-    class AccessRequestInvalidState(AccessRequestError):
-        """Error raised when the status for access is invalid."""
+    class AccessRequestClosed(AccessRequestError):
+        """Error raised when the access request was already processed."""
 
     class AccessRequestInvalidDuration(AccessRequestError):
         """Error raised when the time frame for access is invalid."""
-
-    class AccessRequestPatchNoArgsError(AccessRequestError):
-        """Error raised when there are no values to change in a change request."""
 
     class AccessRequestNotFoundError(AccessRequestError):
         """Error raised when an access request cannot be found."""
@@ -100,18 +97,19 @@ class AccessRequestRepositoryPort(ABC):
         patch_data: AccessRequestPatchData,
         auth_context: AuthContext,
     ) -> None:
-        """Update the status, access start or access end date of the access request.
+        """Update the status or other fields of the access request.
 
         If the status is set to allowed, an IVA ID must be provided or already exist.
 
         Only data stewards may use this method.
 
         Raises:
-        - `AccessRequestAuthorizationError` if the user is not authorized.
-        - `AccessRequestNotFoundError` if the specified request was not found.
-        - `AccessRequestMissingIva` if an IVA is needed but not provided.
-        - `AccessRequestInvalidState` error if the specified state is invalid.
-        - `AccessRequestServerError` if the grant could not be registered.
+        - `AccessRequestNotFoundError` if the specified request was not found
+        - `AccessRequestAuthorizationError` if the user is not authorized
+        - `AccessRequestClosed` if the access request was already processed
+        - `AccessRequestMissingIva` if an IVA is needed but not provided
+        - `AccessRequestInvalidDuration` if the end date isn't later than the start date
+        - `AccessRequestServerError` if the access grant could not be registered
         """
         ...
 
