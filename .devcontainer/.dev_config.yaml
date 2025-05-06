@@ -12,9 +12,6 @@ mongo_dsn: "mongodb://mongodb:27017"
 db_name: "access-requests"
 
 access_request_topic: access_request_events
-access_request_created_type: access_request_created
-access_request_allowed_type: access_request_allowed
-access_request_denied_type: access_request_denied
 
 dataset_change_topic: metadata_datasets
 dataset_upsertion_type: dataset_created

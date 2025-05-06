@@ -78,6 +78,10 @@ class AccessRequestCreationData(BaseDto):
     dataset_id: Accession = Field(
         default=..., description="ID of the dataset for which access is requested"
     )
+    dataset_title: str = Field(default=..., description="Title of the dataset")
+    dac_alias: str = Field(
+        default=..., description="The alias of the Data Access Committee."
+    )
     email: str = Field(
         default=..., description="Contact e-mail address of the requester"
     )
