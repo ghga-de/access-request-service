@@ -24,6 +24,12 @@ components:
           description: The alias of the Data Access Committee.
           title: Dac Alias
           type: string
+        dataset_description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Description of the dataset
+          title: Dataset Description
         dataset_id:
           description: ID of the dataset for which access is requested
           pattern: ^[A-Z]{1,6}[0-9]{3,18}$
@@ -107,6 +113,12 @@ components:
           description: The alias of the Data Access Committee.
           title: Dac Alias
           type: string
+        dataset_description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Description of the dataset
+          title: Dataset Description
         dataset_id:
           description: ID of the dataset for which access is requested
           pattern: ^[A-Z]{1,6}[0-9]{3,18}$
