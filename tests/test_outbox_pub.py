@@ -15,10 +15,9 @@
 
 """Tests for the events published by the access request outbox DAO"""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import pytest
-from ghga_service_commons.auth.ghga import AcademicTitle, AuthContext
 from ghga_service_commons.utils.utc_dates import now_as_utc
 from hexkit.correlation import set_new_correlation_id
 from hexkit.providers.akafka.testutils import KafkaFixture
@@ -29,29 +28,6 @@ from ars.adapters.outbound.daos import get_access_request_dao
 from ars.core.models import AccessRequest, AccessRequestCreationData
 
 pytestmark = pytest.mark.asyncio()
-ONE_HOUR = timedelta(seconds=60 * 60)
-IAT = now_as_utc()
-EXP = IAT + ONE_HOUR
-
-auth_context_doe = AuthContext(
-    id="id-of-john-doe@ghga.de",
-    name="John Doe",
-    email="john@home.org",
-    title=AcademicTitle.DR,
-    roles=[],
-    iat=IAT,
-    exp=EXP,
-)
-
-auth_context_steward = AuthContext(
-    id="id-of-rod-steward@ghga.de",
-    name="Rod Steward",
-    email="steward@ghga.de",
-    title=None,
-    roles=["data_steward@ghga.de"],
-    iat=IAT,
-    exp=EXP,
-)
 
 
 CREATION_DATA = AccessRequestCreationData(
@@ -59,6 +35,7 @@ CREATION_DATA = AccessRequestCreationData(
     iva_id="some-iva",
     dataset_id="DS001",
     dataset_title="Dataset1",
+    dataset_description="Some Description",
     dac_alias="Some DAC",
     email="me@john-doe.name",
     request_text="Can I access some dataset?",
@@ -69,7 +46,7 @@ CREATION_DATA = AccessRequestCreationData(
 access_request = AccessRequest(
     **CREATION_DATA.model_dump(),
     full_user_name="John Doe",
-    request_created=IAT,
+    request_created=now_as_utc(),
 )
 
 

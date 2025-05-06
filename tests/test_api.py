@@ -34,6 +34,7 @@ CREATION_DATA = {
     "user_id": "id-of-john-doe@ghga.de",
     "dataset_id": "DS001",
     "dataset_title": "Dataset1",
+    "dataset_description": "Some Description",
     "dac_alias": "Some DAC",
     "iva_id": "some-iva",
     "email": "me@john-doe.name",
@@ -101,9 +102,13 @@ async def test_create_access_request(
         "user_id",
         "dataset_id",
         "dataset_title",
+        "dataset_description",
         "dac_alias",
+        "request_text",
+        "access_ends",
     ]:
         assert recorded_event.payload[key] == CREATION_DATA[key]
+    assert recorded_event.payload["status"] == "pending"
     assert recorded_event.type_ == "upserted"
 
 
@@ -347,9 +352,13 @@ async def test_patch_access_request(
         "user_id",
         "dataset_id",
         "dataset_title",
+        "dataset_description",
         "dac_alias",
+        "request_text",
+        "access_ends",
     ]:
         assert recorded_event.payload[key] == CREATION_DATA[key]
+    assert recorded_event.payload["status"] == "allowed"
     assert recorded_event.type_ == "upserted"
 
     # get request as user
