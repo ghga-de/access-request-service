@@ -224,7 +224,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             raise not_found_error from error
 
         user_id = auth_context.id
-        if not user_id or not has_role(auth_context, DATA_STEWARD_ROLE):
+        if not (user_id and has_role(auth_context, DATA_STEWARD_ROLE)):
             authorization_error = self.AccessRequestAuthorizationError("Not authorized")
             log.error(authorization_error)
             raise authorization_error
