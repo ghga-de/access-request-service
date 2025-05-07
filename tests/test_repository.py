@@ -884,6 +884,50 @@ async def test_set_invalid_access_end_date():
     assert access_grants.last_grant == "nothing granted so far"
 
 
+async def test_set_ticket_id():
+    """Test setting the ticket ID and notes of a request."""
+    request = await access_request_dao.get_by_id("request-id-4")
+    assert request.status == AccessRequestStatus.PENDING
+
+    # set ticket ID and internal note
+
+    await repository.update(
+        "request-id-4",
+        patch_data=AccessRequestPatchData(
+            ticket_id="ticket-id-4", internal_note="some internal note"
+        ),
+        auth_context=auth_context_steward,
+    )
+
+    changed_request = access_request_dao.last_upsert
+    assert changed_request is not None
+    changed_dict = changed_request.model_dump()
+    assert changed_dict["ticket_id"] == "ticket-id-4"
+    assert changed_dict["internal_note"] == "some internal note"
+    assert changed_dict["note_to_requester"] is None
+
+    # remove internal note ans set note to requester
+
+    await repository.update(
+        "request-id-4",
+        patch_data=AccessRequestPatchData(
+            internal_note="", note_to_requester="some note to requester"
+        ),
+        auth_context=auth_context_steward,
+    )
+
+    changed_request = access_request_dao.last_upsert
+    assert changed_request is not None
+    changed_dict = changed_request.model_dump()
+    assert changed_dict["ticket_id"] == "ticket-id-4"
+    assert changed_dict["internal_note"] is None
+    assert changed_dict["note_to_requester"] == "some note to requester"
+
+    # status should not have changed
+
+    assert changed_dict["status"] == AccessRequestStatus.PENDING.value
+
+
 async def test_can_register_a_dataset():
     """Test that a dataset can be registered."""
     with pytest.raises(ResourceNotFoundError):
