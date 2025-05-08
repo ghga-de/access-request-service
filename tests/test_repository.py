@@ -943,7 +943,7 @@ async def test_set_ticket_id():
     assert changed_dict["internal_note"] == "some internal note"
     assert changed_dict["note_to_requester"] is None
 
-    # remove internal note ans set note to requester
+    # remove internal note and set note to requester
 
     await repository.update(
         "request-id-4",
