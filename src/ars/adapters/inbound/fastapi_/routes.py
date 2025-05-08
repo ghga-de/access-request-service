@@ -60,6 +60,7 @@ async def health():
             "description": "Access request was successfully created",
         },
         403: {"description": "Not authorized to create an access request."},
+        404: {"description": "Dataset not found"},
         422: {"description": "Validation error in submitted data."},
     },
     status_code=201,
