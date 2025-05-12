@@ -113,7 +113,6 @@ async def test_dataset_deletion(consumer: ConsumerFixture):
     await repository.register_dataset(DATASET)
 
     # delete the dataset again
-
     deleted_dataset = DATASET_DELETION_EVENT
     await kafka.publish_event(
         payload=deleted_dataset.model_dump(),

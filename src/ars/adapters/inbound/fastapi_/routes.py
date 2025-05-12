@@ -139,7 +139,7 @@ async def get_access_requests(
     responses={
         204: {"description": "Access request was successfully changed"},
         403: {"description": "Not authorized to change access request."},
-        404: {"description": "Access request does not exist."},
+        404: {"description": "Access request or dataset does not exist."},
         422: {"description": "Validation error in submitted data."},
     },
     status_code=204,
@@ -160,6 +160,8 @@ async def patch_access_request(
     except repository.AccessRequestAuthorizationError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except repository.AccessRequestNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except repository.DatasetNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except (
         repository.AccessRequestClosed,
