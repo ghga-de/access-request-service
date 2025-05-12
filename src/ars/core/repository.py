@@ -195,7 +195,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         return requests
 
-    async def update(  # noqa: C901
+    async def update(  # noqa: C901, PLR0915
         self,
         access_request_id: str,
         *,
