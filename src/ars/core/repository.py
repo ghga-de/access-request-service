@@ -267,16 +267,12 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             update["status_changed"] = now_as_utc()
             update["changed_by"] = user_id
 
-        ticket_id = patch_data.ticket_id
-        if ticket_id is not None:
-            update["ticket_id"] = ticket_id or None
-        internal_note = patch_data.internal_note
-        if internal_note is not None:
-            update["internal_note"] = internal_note or None
-        note_to_requester = patch_data.note_to_requester
-        if note_to_requester is not None:
-            update["note_to_requester"] = note_to_requester or None
-
+        if patch_data.ticket_id is not None:
+            update["ticket_id"] = patch_data.ticket_id or None
+        if patch_data.internal_note is not None:
+            update["internal_note"] = patch_data.internal_note or None
+        if patch_data.note_to_requester is not None:
+            update["note_to_requester"] = patch_data.note_to_requester or None
         modified_request = request.model_copy(update=update)
         await self._request_dao.update(modified_request)
 
