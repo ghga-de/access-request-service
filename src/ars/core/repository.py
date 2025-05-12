@@ -311,6 +311,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         Raises a `DatasetNotFoundError` if the dataset was not found.
         """
         try:
+            await self._dataset_dao.delete(id_=dataset_id)
             async for request in self._request_dao.find_all(
                 mapping={"dataset_id": dataset_id}
             ):
@@ -319,7 +320,6 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                         "status": AccessRequestStatus.DENIED,
                         "status_changed": now_as_utc(),
                         "note_to_requester": "This dataset has been deleted",
-                        # should this be a value to indicate this has happend automatically instead?
                         "changed_by": None,
                     }
                     updated_request = request.model_copy(update=update)
@@ -333,7 +333,6 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                         request.id,
                         dataset_id,
                     )
-            return await self._dataset_dao.delete(id_=dataset_id)
         except ResourceNotFoundError as error:
             dataset_not_found_error = self.DatasetNotFoundError("Dataset not found")
             log.error(dataset_not_found_error, extra={"dataset_id": dataset_id})
