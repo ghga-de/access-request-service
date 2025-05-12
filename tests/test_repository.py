@@ -934,7 +934,7 @@ async def test_set_invalid_access_end_date(mock_dataset_access):
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_ticket_id_and_notes():
+async def test_set_ticket_id_and_notes(mock_dataset_access):
     """Test setting the ticket ID and notes of a request."""
     request = await access_request_dao.get_by_id("request-id-4")
     assert request.status == AccessRequestStatus.PENDING
