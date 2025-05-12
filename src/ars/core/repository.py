@@ -195,7 +195,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         return requests
 
-    async def update(  # noqa: C901, PLR0915
+    async def update(  # noqa: C901
         self,
         access_request_id: str,
         *,
@@ -210,7 +210,6 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         Raises:
         - `AccessRequestNotFoundError` if the specified request was not found
-        - `DatasetNotFoundError` if the dataset for the specified request was not found
         - `AccessRequestAuthorizationError` if the user is not authorized
         - `AccessRequestClosed` if the access request was already processed
         - `AccessRequestMissingIva` if an IVA is needed but not provided
@@ -225,22 +224,6 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             )
             log.error(not_found_error, extra={"access_request_id": access_request_id})
             raise not_found_error from error
-
-        dataset_id = request.dataset_id
-        try:
-            _ = await self._dataset_dao.get_by_id(dataset_id)
-        except ResourceNotFoundError as error:
-            dataset_not_found_error = self.DatasetNotFoundError(
-                "Dataset for access request not found"
-            )
-            log.error(
-                dataset_not_found_error,
-                extra={
-                    "access_request_id": access_request_id,
-                    "dataset_id": dataset_id,
-                },
-            )
-            raise dataset_not_found_error from error
 
         user_id = auth_context.id
         if not (user_id and has_role(auth_context, DATA_STEWARD_ROLE)):
@@ -335,7 +318,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                     update = {
                         "status": AccessRequestStatus.DENIED,
                         "status_changed": now_as_utc(),
-                        "internal_note": "This dataset has been deleted",
+                        "note_to_requester": "This dataset has been deleted",
                         # should this be a value to indicate this has happend automatically instead?
                         "changed_by": None,
                     }

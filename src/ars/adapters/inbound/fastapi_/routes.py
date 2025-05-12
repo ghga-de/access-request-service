@@ -139,7 +139,7 @@ async def get_access_requests(
     responses={
         204: {"description": "Access request was successfully changed"},
         403: {"description": "Not authorized to change access request."},
-        404: {"description": "Access request or dataset does not exist."},
+        404: {"description": "Access request does not exist."},
         422: {"description": "Validation error in submitted data."},
     },
     status_code=204,

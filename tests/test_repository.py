@@ -20,7 +20,6 @@ from collections.abc import AsyncIterator, Mapping
 from datetime import timedelta
 from operator import attrgetter
 from typing import Any
-from unittest.mock import AsyncMock
 
 import pytest
 from ghga_service_commons.auth.ghga import AcademicTitle, AuthContext
@@ -292,16 +291,6 @@ def reset():
     access_request_dao.reset()
     dataset_dao.reset()
     access_grants.reset()
-
-
-@pytest.fixture()
-def mock_dataset_access(reset):
-    """Mock response to repository._dataset_dao.get_by_id call."""
-    # repository.update code needs a valid backing dataset now. Mock it here
-    original_method = repository._dataset_dao.get_by_id
-    repository._dataset_dao.get_by_id = AsyncMock(return_value=DATASET)  # type: ignore[method-assign]
-    yield
-    repository._dataset_dao.get_by_id = original_method  # type: ignore[method-assign]
 
 
 repository = AccessRequestRepository(
@@ -600,7 +589,7 @@ async def test_filtering_using_multiple_criteria():
     ]
 
 
-async def test_set_status_to_allowed(mock_dataset_access):
+async def test_set_status_to_allowed():
     """Test updating the status of a request from pending to allowed."""
     original_request = await access_request_dao.get_by_id("request-id-4")
     original_dict = original_request.model_dump()
@@ -634,7 +623,7 @@ async def test_set_status_to_allowed(mock_dataset_access):
     )
 
 
-async def test_set_status_to_allowed_and_modify_duration(mock_dataset_access):
+async def test_set_status_to_allowed_and_modify_duration():
     """Test allowing a request and modifying its duration at the same time."""
     original_request = await access_request_dao.get_by_id("request-id-4")
     original_dict = original_request.model_dump()
@@ -675,7 +664,7 @@ async def test_set_status_to_allowed_and_modify_duration(mock_dataset_access):
     )
 
 
-async def test_set_status_to_allowed_reusing_iva(mock_dataset_access):
+async def test_set_status_to_allowed_reusing_iva():
     """Test setting the status of a request to allowed reusing the IVA."""
     original_request = await access_request_dao.get_by_id("request-id-6")
     original_dict = original_request.model_dump()
@@ -706,7 +695,7 @@ async def test_set_status_to_allowed_reusing_iva(mock_dataset_access):
     )
 
 
-async def test_set_status_to_allowed_overriding_iva(mock_dataset_access):
+async def test_set_status_to_allowed_overriding_iva():
     """Test setting the status of a request to allowed overriding the IVA."""
     original_request = await access_request_dao.get_by_id("request-id-6")
     original_dict = original_request.model_dump()
@@ -740,7 +729,7 @@ async def test_set_status_to_allowed_overriding_iva(mock_dataset_access):
     )
 
 
-async def test_set_status_to_allowed_without_iva(mock_dataset_access):
+async def test_set_status_to_allowed_without_iva():
     """Test setting the status of a request from pending to allowed without any IVA."""
     original_request = await access_request_dao.get_by_id("request-id-4")
     original_dict = original_request.model_dump()
@@ -759,9 +748,7 @@ async def test_set_status_to_allowed_without_iva(mock_dataset_access):
         )
 
 
-async def test_set_status_to_allowed_with_error_when_granting_access(
-    mock_dataset_access,
-):
+async def test_set_status_to_allowed_with_error_when_granting_access():
     """Test setting the status of a request when granting fails."""
     original_request = await access_request_dao.get_by_id("request-id-4")
     access_grants.simulate_error = True
@@ -786,7 +773,7 @@ async def test_set_status_to_allowed_with_error_when_granting_access(
     assert changed_request == original_request
 
 
-async def test_set_status_to_allowed_when_it_is_already_allowed(mock_dataset_access):
+async def test_set_status_to_allowed_when_it_is_already_allowed():
     """Test setting the status of a request to the same state."""
     request = await access_request_dao.get_by_id("request-id-1")
     assert request.status == AccessRequestStatus.ALLOWED
@@ -807,7 +794,7 @@ async def test_set_status_to_allowed_when_it_is_already_allowed(mock_dataset_acc
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_status_to_allowed_when_it_is_already_denied(mock_dataset_access):
+async def test_set_status_to_allowed_when_it_is_already_denied():
     """Test setting the status of a request to allowed that has already been denied."""
     request = await access_request_dao.get_by_id("request-id-3")
     assert request.status == AccessRequestStatus.DENIED
@@ -839,7 +826,7 @@ async def test_set_status_of_non_existing_request():
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_status_when_not_a_data_steward(mock_dataset_access):
+async def test_set_status_when_not_a_data_steward():
     """Test setting the status of a request when not being a data steward."""
     with pytest.raises(repository.AccessRequestError, match="Not authorized"):
         await repository.update(
@@ -852,7 +839,7 @@ async def test_set_status_when_not_a_data_steward(mock_dataset_access):
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_access_date_when_request_is_already_allowed(mock_dataset_access):
+async def test_set_access_date_when_request_is_already_allowed():
     """Test setting the access duration when request was already allowed."""
     request = await access_request_dao.get_by_id("request-id-1")
     assert request.status == AccessRequestStatus.ALLOWED
@@ -873,7 +860,7 @@ async def test_set_access_date_when_request_is_already_allowed(mock_dataset_acce
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_invalid_access_duration(mock_dataset_access):
+async def test_set_invalid_access_duration():
     """Test setting an invalid access duration."""
     request = await access_request_dao.get_by_id("request-id-4")
     assert request.status == AccessRequestStatus.PENDING
@@ -894,7 +881,7 @@ async def test_set_invalid_access_duration(mock_dataset_access):
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_invalid_access_start_date(mock_dataset_access):
+async def test_set_invalid_access_start_date():
     """Test setting an invalid access start date."""
     request = await access_request_dao.get_by_id("request-id-4")
     assert request.status == AccessRequestStatus.PENDING
@@ -914,7 +901,7 @@ async def test_set_invalid_access_start_date(mock_dataset_access):
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_invalid_access_end_date(mock_dataset_access):
+async def test_set_invalid_access_end_date():
     """Test setting an invalid end date."""
     request = await access_request_dao.get_by_id("request-id-4")
     assert request.status == AccessRequestStatus.PENDING
@@ -934,7 +921,7 @@ async def test_set_invalid_access_end_date(mock_dataset_access):
     assert access_grants.last_grant == "nothing granted so far"
 
 
-async def test_set_ticket_id_and_notes(mock_dataset_access):
+async def test_set_ticket_id_and_notes():
     """Test setting the ticket ID and notes of a request."""
     request = await access_request_dao.get_by_id("request-id-4")
     assert request.status == AccessRequestStatus.PENDING
