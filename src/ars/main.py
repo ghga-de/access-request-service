@@ -20,7 +20,7 @@ from hexkit.log import configure_logging
 
 from ars.config import Config
 from ars.migrations import run_db_migrations
-from ars.prepare import prepare_consumer, prepare_rest_app
+from ars.prepare import prepare_access_request_dao, prepare_consumer, prepare_rest_app
 
 DB_VERSION = 2
 
@@ -45,3 +45,17 @@ async def consume_events(run_forever: bool = True) -> None:
 
     async with prepare_consumer(config=config) as consumer:
         await consumer.event_subscriber.run(forever=run_forever)
+
+
+async def publish_events(*, all: bool = False):
+    """Publish pending events. Set `--all` to (re)publish all events regardless of status."""
+    config = Config()  # type: ignore
+    configure_logging(config=config)
+
+    await run_db_migrations(config=config, target_version=DB_VERSION)
+
+    async with prepare_access_request_dao(config=config) as outbox_publisher:
+        if all:
+            await outbox_publisher.republish()
+        else:
+            await outbox_publisher.publish_pending()
