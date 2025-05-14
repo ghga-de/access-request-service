@@ -138,9 +138,9 @@ cffi==1.17.1 \
     # via
     #   -c lock/requirements-dev.txt
     #   cryptography
-click==8.1.8 \
-    --hash=sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2 \
-    --hash=sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a
+click==8.2.0 \
+    --hash=sha256:6b303f0b2aa85f1cb4e5303078fadcbcd4e476f114fab9b5007005711839325c \
+    --hash=sha256:f5452aeddd9988eefa20f90f05ab66f17fce1ee2a36907fd30b05bbb5953814d
     # via
     #   -c lock/requirements-dev.txt
     #   typer
@@ -217,9 +217,9 @@ ghga-event-schemas==8.0.0 \
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
-ghga-service-commons==4.0.0 \
-    --hash=sha256:27ba3dfea1ad40398d64eb72a686952ac7e13ce01a9145018d3175fc056f61ce \
-    --hash=sha256:58ed73c298f37c785ee9eec0fb7410f69d0d3f2027c54cc8f902e1db18f15b92
+ghga-service-commons==4.1.0 \
+    --hash=sha256:3601ca173818f87b73f9dcf55463fd7ec43d881a840e0ba8a1342f77e4127aad \
+    --hash=sha256:6c1b367d324ff23303e949d2af956eda007d24b4d7c811cfc8add1974a9034f0
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
@@ -231,9 +231,9 @@ h11==0.16.0 \
     #   -c lock/requirements-dev.txt
     #   httpcore
     #   uvicorn
-hexkit==4.6.2 \
-    --hash=sha256:422aba57877ec6657de299049d2099c5bb7813cd1a9a0b204dc1b3d8f5a4080e \
-    --hash=sha256:cc6fcc7037914ff896d261caef1126f7ab854c23f4161c71d1dc3edefc81e49c
+hexkit==5.0.0 \
+    --hash=sha256:5d77d6ebfd907d9e9834f3c92d18292713761c8c7a7f8e6bc8736721beeee4e1 \
+    --hash=sha256:cce9c8303582bcd902ff2935b5e5fabaeb6f69140fa73334f0aff6dc8aab9c12
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
@@ -349,9 +349,9 @@ motor==3.7.0 \
     # via
     #   -c lock/requirements-dev.txt
     #   hexkit
-opentelemetry-api==1.32.1 \
-    --hash=sha256:a5be71591694a4d9195caf6776b055aa702e964d961051a0715d05f8632c32fb \
-    --hash=sha256:bbd19f14ab9f15f0e85e43e6a958aa4cb1f36870ee62b7fd205783a112012724
+opentelemetry-api==1.33.0 \
+    --hash=sha256:158df154f628e6615b65fdf6e59f99afabea7213e72c5809dd4adf06c0d997cd \
+    --hash=sha256:cc4380fd2e6da7dcb52a828ea81844ed1f4f2eb638ca3c816775109d93d58ced
     # via
     #   -c lock/requirements-dev.txt
     #   hexkit
