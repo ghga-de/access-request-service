@@ -28,6 +28,13 @@ class V2Migration(MigrationDefinition, Reversible):
 
     version = 2
 
+    _optional_fields = [
+        "dataset_description",
+        "ticket_id",
+        "internal_note",
+        "note_to_requester",
+    ]
+
     async def apply(self):
         """Perform the migration and set the DB to version 2.
 
@@ -35,8 +42,7 @@ class V2Migration(MigrationDefinition, Reversible):
         - Populate the required `dataset_title` and `dac_alias` fields with empty string
         - Populate `__metadata__` field for outbox with "published=True" and made-up
           correlation ID (since we don't know what was originally used).
-        - Add `dataset_description`, `ticket_id`, `internal_note`,
-          and `note_to_requester` with `None` because they are optional fields.
+        - Set optional fields to None.
         """
 
         async def update_access_request_doc(doc: Document) -> Document:
@@ -46,15 +52,9 @@ class V2Migration(MigrationDefinition, Reversible):
                 "published": True,
                 "deleted": False,
             }
-            doc["dataset_title"] = ""
-            doc["dac_alias"] = ""
-            for optional_field in [
-                "dataset_description",
-                "ticket_id",
-                "internal_note",
-                "note_to_requester",
-            ]:
-                doc[optional_field] = None
+            doc["dataset_title"] = doc["dac_alias"] = ""
+            for field in self._optional_fields:
+                doc[field] = None
             return doc
 
         # Migrate the accessRequests collection and auto-finalize (replace old collection)
@@ -69,22 +69,18 @@ class V2Migration(MigrationDefinition, Reversible):
 
         Changes for "accessRequests" collection:
         - Remove `__metadata__` field
-        - Remove `dataset_title`, `dataset_description`, `dac_alias`, `ticket_id`,
-          `internal_note`, and `note_to_requester`
+        - Remove `dataset_title`, `dataset_description` and optional fields
         """
 
         async def remove_access_request_fields(doc: Document) -> Document:
             """Remove the aforementioned fields"""
-            for key in [
+            for field in [
                 "__metadata__",
                 "dataset_title",
-                "dataset_description",
                 "dac_alias",
-                "ticket_id",
-                "internal_note",
-                "note_to_requester",
+                *self._optional_fields,
             ]:
-                doc.pop(key)
+                del doc[field]
             return doc
 
         async with self.auto_finalize(coll_names="accessRequests", copy_indexes=False):

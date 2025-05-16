@@ -27,7 +27,7 @@ from ars.migrations import V2Migration, run_db_migrations
 pytestmark = pytest.mark.asyncio()
 
 
-ACCESS_REQUESTS = [
+ACCESS_REQUESTS_V1 = [
     {
         "id": "request-id-1",
         "user_id": "id-of-john-doe@ghga.de",
@@ -93,7 +93,7 @@ async def test_v2_migration(mongodb: MongoDbFixture):
     access_request_collection = db["accessRequests"]
 
     # Insert some access requests and datasets
-    for access_request in ACCESS_REQUESTS:
+    for access_request in ACCESS_REQUESTS_V1:
         access_request_collection.insert_one(access_request)
 
     # Save this for later
@@ -105,7 +105,7 @@ async def test_v2_migration(mongodb: MongoDbFixture):
 
     # Verify V2 migration was applied correctly
     migrated_docs = access_request_collection.find().to_list()
-    assert len(migrated_docs) == len(ACCESS_REQUESTS)
+    assert len(migrated_docs) == len(ACCESS_REQUESTS_V1)
 
     for doc in migrated_docs:
         assert "__metadata__" in doc
