@@ -52,18 +52,22 @@ class AccessRequestConfig(BaseSettings):
 
     access_upfront_max_days: int = Field(
         default=6 * 30,
+        ge=0,
         description="The maximum lead time in days to request access grants",
     )
     access_grant_min_days: int = Field(
         default=7,
+        ge=1,
         description="The minimum number of days that the access will be granted",
     )
     access_grant_max_days: int = Field(
         default=2 * 365,
+        ge=1,
         description="The maximum number of days that the access can be granted",
     )
-    access_grant_max_extend: int = Field(
+    access_grant_max_extend: float = Field(
         default=5,
+        ge=1,
         description="Max factor by which a data steward may extend the access grant",
     )
 

@@ -953,6 +953,27 @@ async def test_set_past_access_start_date():
     assert access_grants.last_grant == "nothing granted so far"
 
 
+async def test_extend_access_end_too_much():
+    """Test setting an invalid access end date."""
+    request = await access_request_dao.get_by_id("request-id-4")
+    assert request.status == AccessRequestStatus.PENDING
+
+    now = now_as_utc()
+
+    with pytest.raises(
+        repository.AccessRequestInvalidDuration,
+        match="Access duration is too long",
+    ):
+        await repository.update(
+            "request-id-4",
+            patch_data=AccessRequestPatchData(
+                access_starts=now + timedelta(days=30),
+                access_ends=now + timedelta(days=9999),
+            ),
+            auth_context=auth_context_steward,
+        )
+
+
 async def test_set_ticket_id_and_notes():
     """Test setting the ticket ID and notes of a request."""
     request = await access_request_dao.get_by_id("request-id-4")
