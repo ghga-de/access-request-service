@@ -53,7 +53,7 @@ The service requires the following configuration parameters:
 
 - <a id="properties/access_grant_max_days"></a>**`access_grant_max_days`** *(integer)*: The maximum number of days that the access can be granted. Minimum: `1`. Default: `730`.
 
-- <a id="properties/access_grant_max_extend"></a>**`access_grant_max_extend`** *(number)*: Max factor by which a data steward may extend the access grant. Minimum: `1`. Default: `5`.
+- <a id="properties/access_grant_max_extend"></a>**`access_grant_max_extend`** *(number)*: This is a factor that the maximum number of days is multiplied with for data stewards. Set this to 1 to disable extension. Minimum: `1`. Default: `5`.
 
 - <a id="properties/download_access_url"></a>**`download_access_url`** *(string, required)*: URL pointing to the internal download access API.
 

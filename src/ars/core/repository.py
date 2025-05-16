@@ -68,7 +68,8 @@ class AccessRequestConfig(BaseSettings):
     access_grant_max_extend: float = Field(
         default=5,
         ge=1,
-        description="Max factor by which a data steward may extend the access grant",
+        description="This is a factor that the maximum number of days is multiplied"
+        " with for data stewards. Set this to 1 to disable extension.",
     )
 
 
