@@ -20,6 +20,12 @@
       "title": "Access Grant Max Days",
       "type": "integer"
     },
+    "access_grant_max_extend": {
+      "default": 5,
+      "description": "Max factor by which a data steward may extend the access grant",
+      "title": "Access Grant Max Extend",
+      "type": "integer"
+    },
     "download_access_url": {
       "description": "URL pointing to the internal download access API.",
       "examples": [
