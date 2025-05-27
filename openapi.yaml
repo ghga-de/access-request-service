@@ -26,6 +26,7 @@ components:
           type: string
         dac_email:
           description: The email address of the Data Access Committee
+          format: email
           title: Dac Email
           type: string
         dataset_description:
@@ -45,6 +46,7 @@ components:
           type: string
         email:
           description: Contact e-mail address of the requester
+          format: email
           title: Email
           type: string
         full_user_name:
@@ -139,6 +141,7 @@ components:
           type: string
         email:
           description: Contact e-mail address of the requester
+          format: email
           title: Email
           type: string
         iva_id:
