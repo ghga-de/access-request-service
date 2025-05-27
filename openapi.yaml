@@ -21,8 +21,12 @@ components:
           description: The ID of the data steward who made the status change
           title: Changed By
         dac_alias:
-          description: The alias of the Data Access Committee.
+          description: The alias of the Data Access Committee
           title: Dac Alias
+          type: string
+        dac_email:
+          description: The email address of the Data Access Committee
+          title: Dac Email
           type: string
         dataset_description:
           anyOf:
@@ -109,6 +113,7 @@ components:
       - access_ends
       - dataset_title
       - dac_alias
+      - dac_email
       - full_user_name
       - request_created
       title: AccessRequest
@@ -224,7 +229,7 @@ components:
 info:
   description: A service managing access requests for the GHGA Data Portal
   title: Access Request Service
-  version: 5.0.0
+  version: 5.1.0
 openapi: 3.1.0
 paths:
   /access-requests:
