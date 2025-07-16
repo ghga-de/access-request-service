@@ -218,8 +218,8 @@ async def patch_access_request(
     status_code=200,
 )
 async def get_access_grants(  # noqa: PLR0913
-    auth_context: UserAuthContext,
     repository: dummies.AccessRequestRepoDummy,
+    auth_context: UserAuthContext,
     user_id: Annotated[
         str | None,
         Query(
@@ -273,3 +273,49 @@ async def get_access_grants(  # noqa: PLR0913
         raise HTTPException(
             status_code=500, detail="Access requests could not be fetched."
         ) from exc
+
+
+@router.delete(
+    "/access-grants/{grant_id}",
+    operation_id="revoke_access_grant",
+    tags=["AccessGrants"],
+    summary="Revoke a data access grant",
+    description="Endpoint to revoke an existing data access grant.",
+    responses={
+        204: {
+            "description": "The data access grant has been revoked.",
+        },
+        403: {"description": "Not authorized to revoke a data access grant."},
+        404: {"description": "The data access grant was not found."},
+    },
+    status_code=204,
+)
+async def revoke_access_grant(
+    grant_id: Annotated[
+        str,
+        Path(
+            ...,
+            alias="grant_id",
+            description="The ID of the data access grant to revoke",
+        ),
+    ],
+    repository: dummies.AccessRequestRepoDummy,
+    auth_context: StewardAuthContext,
+) -> Response:
+    """Revoke an existing data access grant."""
+    try:
+        await repository.revoke_grant(
+            grant_id,
+            auth_context=auth_context,
+        )
+    except repository.AccessRequestAuthorizationError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except repository.AccessGrantNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except repository.AccessGrantsError as exc:
+        log.error("Could not revoke data access grant: %s", exc)
+        raise HTTPException(
+            status_code=500, detail="Data access grant could not be revoked."
+        ) from exc
+
+    return Response(status_code=204)

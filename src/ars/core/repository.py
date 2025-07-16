@@ -410,11 +410,14 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
     ) -> list[AccessGrant]:
         """Get the list of all download access grants with the given properties.
 
+        The list also contains information about the corresponding user and dataset.
+
         Only data stewards may list grants created by other users.
 
         Raises:
         - `AccessRequestAuthorizationError` if the user is not authorized
         - `AccessGrantError` if the grants could not be fetched
+        - `DatasetNotFoundError` if any of the corresponding datasets was not found
         """
         if not auth_context.id:
             authorization_error = self.AccessRequestAuthorizationError("Not authorized")
@@ -431,9 +434,59 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 log.error(authorization_error)
                 raise authorization_error
         try:
-            return await self._access_grants.download_access_grants(
+            grants = await self._access_grants.download_access_grants(
                 user_id=user_id, iva_id=iva_id, dataset_id=dataset_id, valid=valid
             )
+        except self._access_grants.AccessGrantsError as error:
+            grants_error = self.AccessGrantsError(
+                f"Access grants could not be fetched: {error}"
+            )
+            log.error(grants_error)
+            raise grants_error from error
+        # enrich the grants with info about the dataset
+        grants_infos: list[AccessGrant] = []
+        add_grant_info = grants_infos.append
+        dataset_infos: dict[str, Dataset] = {}
+        for grant in grants:
+            dataset_id = grant.dataset_id
+            dataset = dataset_infos.get(dataset_id)
+            if dataset is None:
+                dataset_infos[dataset_id] = dataset = await self.get_dataset(dataset_id)
+            add_grant_info(
+                AccessGrant(
+                    **grant.model_dump(),
+                    dataset_title=dataset.title,
+                    dac_alias=dataset.dac_alias,
+                    dac_email=dataset.dac_email,
+                )
+            )
+        return grants_infos
+
+    async def revoke_grant(
+        self,
+        grant_id: str,
+        *,
+        auth_context: AuthContext,
+    ) -> None:
+        """Revoke an existing download access grant.
+
+        Only data stewards may use this method.
+
+        Raises:
+        - `AccessGrantNotFoundError` if the specified grant was not found
+        - `AccessRequestAuthorizationError` if the user is not authorized
+        - `AccessRequestServerError` if the access grant could not be registered
+        """
+        if not auth_context.id or not has_role(auth_context, DATA_STEWARD_ROLE):
+            authorization_error = self.AccessRequestAuthorizationError("Not authorized")
+            log.error(authorization_error)
+            raise authorization_error
+        try:
+            return await self._access_grants.revoke_download_access_grant(grant_id)
+        except self._access_grants.AccessGrantNotFoundError as error:
+            not_found_error = self.AccessGrantNotFoundError("Access grant not found")
+            log.error(not_found_error, extra={"grant_id": grant_id})
+            raise not_found_error from error
         except self._access_grants.AccessGrantsError as error:
             grants_error = self.AccessGrantsError(
                 f"Access grants could not be fetched: {error}"

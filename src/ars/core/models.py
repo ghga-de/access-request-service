@@ -176,8 +176,8 @@ class AccessRequestPatchData(BaseDto):
     )
 
 
-class AccessGrant(BaseDto):
-    """An access grant based on a corresponding claim."""
+class BaseAccessGrant(BaseDto):
+    """An access grant based on a corresponding claim with info about the user."""
 
     id: str = Field(  # actually UUID
         ..., description="Internal grant ID (same as claim ID)"
@@ -205,6 +205,18 @@ class AccessGrant(BaseDto):
     )
     user_title: str | None = Field(
         default=None, description="Academic title of the user"
+    )
+
+
+class AccessGrant(BaseAccessGrant):
+    """An access grant with additional info about the dataset."""
+
+    dataset_title: str = Field(default=..., description="Title of the dataset")
+    dac_alias: str = Field(
+        default=..., description="The alias of the Data Access Committee"
+    )
+    dac_email: EmailStr = Field(
+        default=..., description="The email address of the Data Access Committee"
     )
 
 

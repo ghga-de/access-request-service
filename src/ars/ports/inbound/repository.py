@@ -60,6 +60,9 @@ class AccessRequestRepositoryPort(ABC):
     class AccessGrantsError(RuntimeError):
         """Error that is raised when access grants cannot be processed."""
 
+    class AccessGrantNotFoundError(AccessGrantsError):
+        """Error raised when an access grant cannot be found."""
+
     @abstractmethod
     async def create(
         self, creation_data: AccessRequestCreationData, *, auth_context: AuthContext
@@ -154,9 +157,30 @@ class AccessRequestRepositoryPort(ABC):
     ) -> list[AccessGrant]:
         """Get the list of all download access grants with the given properties.
 
+        The list also contains information about the corresponding user and dataset.
+
         Only data stewards may list grants created by other users.
 
         Raises:
         - `AccessRequestAuthorizationError` if the user is not authorized
         - `AccessGrantsError` if the grants could not be fetched
         """
+        ...
+
+    @abstractmethod
+    async def revoke_grant(
+        self,
+        grant_id: str,
+        *,
+        auth_context: AuthContext,
+    ) -> None:
+        """Revoke an existing download access grant.
+
+        Only data stewards may use this method.
+
+        Raises:
+        - `AccessGrantNotFoundError` if the specified grant was not found
+        - `AccessRequestAuthorizationError` if the user is not authorized
+        - `AccessRequestServerError` if the access grant could not be registered
+        """
+        ...

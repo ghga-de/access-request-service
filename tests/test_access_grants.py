@@ -27,7 +27,7 @@ from pytest_asyncio import fixture as async_fixture
 from pytest_httpx import HTTPXMock
 
 from ars.adapters.outbound.http import AccessGrantsAdapter, AccessGrantsConfig
-from ars.core.models import AccessGrant
+from ars.core.models import BaseAccessGrant
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
@@ -41,11 +41,9 @@ DATE_NOW = now_as_utc()
 VALID_FROM = DATE_NOW - timedelta(days=7)
 VALID_UNTIL = DATE_NOW + timedelta(days=30)
 
-GRANT_URL = f"{DOWNLOAD_ACCESS_URL}/users/{USER_ID}/ivas/{IVA_ID}/datasets/{DATASET_ID}"
-GRANTS_URL = f"{DOWNLOAD_ACCESS_URL}/grants"
-
-GRANT = AccessGrant(
-    id="some-grant-id",
+GRANT_ID = "some-grant-id"
+GRANT = BaseAccessGrant(
+    id=GRANT_ID,
     user_id=USER_ID,
     iva_id=IVA_ID,
     dataset_id=DATASET_ID,
@@ -55,6 +53,9 @@ GRANT = AccessGrant(
     user_name="John Doe",
     user_email="doe@home.org",
 )
+
+GRANT_URL = f"{DOWNLOAD_ACCESS_URL}/users/{USER_ID}/ivas/{IVA_ID}/datasets/{DATASET_ID}"
+GRANTS_URL = f"{DOWNLOAD_ACCESS_URL}/grants"
 
 
 @async_fixture(name="grants_adapter", scope="session", loop_scope="session")
@@ -149,7 +150,7 @@ async def test_grant_download_access_with_timeout(
 @pytest.mark.parametrize("returned_grants", [[], [GRANT], [GRANT] * 3])
 async def test_get_access_grants(
     with_params: bool,
-    returned_grants: list[AccessGrant],
+    returned_grants: list[BaseAccessGrant],
     grants_adapter: AccessGrantsAdapter,
     httpx_mock: HTTPXMock,
 ):
@@ -173,6 +174,7 @@ async def test_get_access_grants(
     grants = await get_grants(**params)  # type: ignore[arg-type]
 
     assert isinstance(grants, list)
+    assert all(isinstance(grant, BaseAccessGrant) for grant in grants)
     assert len(grants) == len(returned_grants)
     assert grants == returned_grants
 
@@ -229,3 +231,71 @@ async def test_get_access_grants_with_timeout(
         grants_adapter.AccessGrantsError, match="Simulated network problem"
     ):
         await get_grants()
+
+
+async def test_revoke_existing_access_grants(
+    grants_adapter: AccessGrantsAdapter,
+    httpx_mock: HTTPXMock,
+):
+    """Test revoking an existing download access grant"""
+    revoke_grant = grants_adapter.revoke_download_access_grant
+
+    url = f"{GRANTS_URL}/{GRANT_ID}"
+    httpx_mock.add_response(method="DELETE", url=url, status_code=204)
+
+    await revoke_grant(GRANT_ID)
+
+    # make sure the request was sent
+    request = httpx_mock.get_request()
+    assert request
+    assert request.method == "DELETE"
+    assert str(request.url) == url
+    assert not request.content
+
+
+async def test_revoke_non_existing_access_grants(
+    grants_adapter: AccessGrantsAdapter,
+    httpx_mock: HTTPXMock,
+):
+    """Test deleting a non-existing download access grant"""
+    revoke_grant = grants_adapter.revoke_download_access_grant
+
+    url = f"{GRANTS_URL}/non-existing-grant-id"
+    httpx_mock.add_response(method="DELETE", url=url, status_code=404)
+
+    with pytest.raises(
+        grants_adapter.AccessGrantNotFoundError,
+        match="Grant with ID non-existing-grant-id not found",
+    ):
+        await revoke_grant("non-existing-grant-id")
+
+
+async def test_revoke_access_grants_with_server_error(
+    grants_adapter: AccessGrantsAdapter,
+    httpx_mock: HTTPXMock,
+):
+    """Test deleting a download access grant when there is a server error"""
+    revoke_grant = grants_adapter.revoke_download_access_grant
+
+    url = f"{GRANTS_URL}/{GRANT_ID}"
+    httpx_mock.add_response(method="DELETE", url=url, status_code=500)
+
+    with pytest.raises(
+        grants_adapter.AccessGrantsError,
+        match="Unexpected response status code 500",
+    ):
+        await revoke_grant(GRANT_ID)
+
+
+async def test_revoke_access_grants_with_timeout(
+    grants_adapter: AccessGrantsAdapter,
+    httpx_mock: HTTPXMock,
+):
+    """Test deleting a download access grants when there is a network timeout"""
+    revoke_grant = grants_adapter.revoke_download_access_grant
+    httpx_mock.add_exception(httpx.ReadTimeout("Simulated network problem"))
+
+    with pytest.raises(
+        grants_adapter.AccessGrantsError, match="Simulated network problem"
+    ):
+        await revoke_grant(GRANT_ID)

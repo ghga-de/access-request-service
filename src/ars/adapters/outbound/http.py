@@ -24,7 +24,7 @@ from ghga_service_commons.utils.utc_dates import UTCDatetime
 from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings
 
-from ars.core.models import AccessGrant, GrantValidity
+from ars.core.models import BaseAccessGrant, GrantValidity
 from ars.ports.outbound.access_grants import AccessGrantsPort
 
 __all__ = ["AccessGrantsAdapter", "AccessGrantsConfig"]
@@ -71,7 +71,10 @@ class AccessGrantsAdapter(AccessGrantsPort):
         valid_from: UTCDatetime,
         valid_until: UTCDatetime,
     ) -> None:
-        """Grant download access to a given user with an IVA for a given dataset."""
+        """Grant download access to a given user with an IVA for a given dataset.
+
+        May raise an `AccessGrantsInvalidPeriodError` or a general `AccessGrantsError`.
+        """
         url = f"{self._url}/users/{user_id}/ivas/{iva_id}/datasets/{dataset_id}"
         try:
             validity = GrantValidity(valid_from=valid_from, valid_until=valid_until)
@@ -94,11 +97,13 @@ class AccessGrantsAdapter(AccessGrantsPort):
         iva_id: str | None = None,
         dataset_id: str | None = None,
         valid: bool | None = None,
-    ) -> list[AccessGrant]:
+    ) -> list[BaseAccessGrant]:
         """Get download access grants.
 
         You can filter the grants by user ID, IVA ID, dataset ID and whether the grant
         is currently valid or not.
+
+        May raise an `AccessGrantsError`.
         """
         url = f"{self._url}/grants"
         params: dict[str, str] = {}
@@ -124,8 +129,26 @@ class AccessGrantsAdapter(AccessGrantsPort):
                 "Unexpected response data format: expected an array"
             )
         try:
-            return [AccessGrant(**grant_data) for grant_data in response_data]
+            return [BaseAccessGrant(**grant_data) for grant_data in response_data]
         except ValidationError as error:
             raise self.AccessGrantsError(
                 f"Invalid data in response: {error}"
             ) from error
+
+    async def revoke_download_access_grant(self, grant_id: str) -> None:
+        """Revoke a download access grant.
+
+        May raise an `AccessGrantNotFoundError` or a general `AccessGrantsError`.
+        """
+        ...
+        url = f"{self._url}/grants/{grant_id}"
+        try:
+            response = await self._client.delete(url)
+        except httpx.RequestError as error:
+            raise self.AccessGrantsError(f"HTTP request error: {error}") from error
+        if response.status_code == httpx.codes.NOT_FOUND:
+            raise self.AccessGrantNotFoundError(f"Grant with ID {grant_id} not found")
+        if response.status_code != httpx.codes.NO_CONTENT:
+            raise self.AccessGrantsError(
+                f"Unexpected response status code {response.status_code}"
+            )
