@@ -21,6 +21,7 @@ from abc import ABC, abstractmethod
 from ghga_service_commons.auth.ghga import AuthContext
 
 from ars.core.models import (
+    AccessGrant,
     AccessRequest,
     AccessRequestCreationData,
     AccessRequestPatchData,
@@ -55,6 +56,9 @@ class AccessRequestRepositoryPort(ABC):
 
     class DatasetNotFoundError(RuntimeError):
         """Error raised when a dataset cannot be found."""
+
+    class AccessGrantsError(RuntimeError):
+        """Error that is raised when access grants cannot be processed."""
 
     @abstractmethod
     async def create(
@@ -137,3 +141,22 @@ class AccessRequestRepositoryPort(ABC):
         Raises a `DatasetNotFoundError` if the dataset was not found.
         """
         ...
+
+    @abstractmethod
+    async def get_grants(
+        self,
+        *,
+        user_id: str | None = None,
+        iva_id: str | None = None,
+        dataset_id: str | None = None,
+        valid: bool | None = None,
+        auth_context: AuthContext,
+    ) -> list[AccessGrant]:
+        """Get the list of all download access grants with the given properties.
+
+        Only data stewards may list grants created by other users.
+
+        Raises:
+        - `AccessRequestAuthorizationError` if the user is not authorized
+        - `AccessGrantsError` if the grants could not be fetched
+        """

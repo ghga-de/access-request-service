@@ -27,6 +27,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from ars.core.models import (
+    AccessGrant,
     AccessRequest,
     AccessRequestCreationData,
     AccessRequestPatchData,
@@ -397,3 +398,45 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             dataset_not_found_error = self.DatasetNotFoundError("Dataset not found")
             log.error(dataset_not_found_error, extra={"dataset_id": dataset_id})
             raise dataset_not_found_error from error
+
+    async def get_grants(
+        self,
+        *,
+        user_id: str | None = None,
+        iva_id: str | None = None,
+        dataset_id: str | None = None,
+        valid: bool | None = None,
+        auth_context: AuthContext,
+    ) -> list[AccessGrant]:
+        """Get the list of all download access grants with the given properties.
+
+        Only data stewards may list grants created by other users.
+
+        Raises:
+        - `AccessRequestAuthorizationError` if the user is not authorized
+        - `AccessGrantError` if the grants could not be fetched
+        """
+        if not auth_context.id:
+            authorization_error = self.AccessRequestAuthorizationError("Not authorized")
+            log.error(authorization_error)
+            raise authorization_error
+        is_data_steward = has_role(auth_context, DATA_STEWARD_ROLE)
+        if not is_data_steward:
+            if user_id is None:
+                user_id = auth_context.id
+            elif user_id != auth_context.id:
+                authorization_error = self.AccessRequestAuthorizationError(
+                    "Not authorized"
+                )
+                log.error(authorization_error)
+                raise authorization_error
+        try:
+            return await self._access_grants.download_access_grants(
+                user_id=user_id, iva_id=iva_id, dataset_id=dataset_id, valid=valid
+            )
+        except self._access_grants.AccessGrantsError as error:
+            grants_error = self.AccessGrantsError(
+                f"Access grants could not be fetched: {error}"
+            )
+            log.error(grants_error)
+            raise grants_error from error

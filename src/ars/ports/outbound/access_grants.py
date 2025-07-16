@@ -20,11 +20,13 @@ from abc import ABC, abstractmethod
 
 from ghga_service_commons.utils.utc_dates import UTCDatetime
 
+from ars.core.models import AccessGrant
+
 __all__ = ["AccessGrantsPort"]
 
 
 class AccessGrantsPort(ABC):
-    """A port for granting download access permissions for datasets."""
+    """A port for checking and granting access permissions for datasets."""
 
     class AccessGrantsError(RuntimeError):
         """Raised when there was an error in storing the access grant."""
@@ -42,4 +44,19 @@ class AccessGrantsPort(ABC):
         valid_until: UTCDatetime,
     ) -> None:
         """Grant download access to a given user with an IVA for a given dataset."""
+        ...
+
+    @abstractmethod
+    async def download_access_grants(
+        self,
+        user_id: str | None = None,
+        iva_id: str | None = None,
+        dataset_id: str | None = None,
+        valid: bool | None = None,
+    ) -> list[AccessGrant]:
+        """Get download access grants.
+
+        You can filter the grants by user ID, IVA ID, dataset ID and whether the grant
+        is currently valid or not.
+        """
         ...
