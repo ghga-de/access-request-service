@@ -18,10 +18,10 @@
 
 import json
 from datetime import datetime, timedelta
-from typing import Any
 
 import pytest
 from ghga_service_commons.utils.utc_dates import now_as_utc
+from hexkit.custom_types import JsonObject
 from hexkit.providers.mongodb.testutils import MongoDbFixture
 from pytest_httpx import HTTPXMock
 
@@ -93,7 +93,7 @@ def assert_same_datetime(date1: str, date2: str, max_diff_seconds=5) -> None:
     assert abs(iso2timestamp(date2) - iso2timestamp(date1)) <= max_diff_seconds
 
 
-def norm_payload(data: dict[str, Any]) -> None:
+def norm_payload(data: JsonObject) -> None:
     """Normalize all date strings in the given payload dict."""
     assert isinstance(data, dict)
     for key in data:
