@@ -36,14 +36,30 @@ class AccessRequestRepositoryPort(ABC):
     class AccessRequestError(RuntimeError):
         """Error that is raised when an access request cannot be processed."""
 
+        def __init__(self, message: str = "Access request error"):
+            super().__init__(message)
+            self.message = message
+
     class AccessRequestAuthorizationError(AccessRequestError):
         """Error that is raised when the user is not authorized."""
+
+        def __init__(self, message: str = "Not authorized"):
+            super().__init__(message)
+            self.message = message
 
     class AccessRequestMissingIva(AccessRequestError):
         """Error raised when an IVA is needed, but not provided."""
 
+        def __init__(self, message: str = "Access request is missing an IVA"):
+            super().__init__(message)
+            self.message = message
+
     class AccessRequestClosed(AccessRequestError):
         """Error raised when the access request was already processed."""
+
+        def __init__(self, message: str = "Access request has already been processed"):
+            super().__init__(message)
+            self.message = message
 
     class AccessRequestInvalidDuration(AccessRequestError):
         """Error raised when the time frame for access is invalid."""
@@ -51,17 +67,33 @@ class AccessRequestRepositoryPort(ABC):
     class AccessRequestNotFoundError(AccessRequestError):
         """Error raised when an access request cannot be found."""
 
+        def __init__(self, message: str = "Access request not found"):
+            super().__init__(message)
+            self.message = message
+
     class AccessRequestServerError(AccessRequestError):
         """Error raised when there was some kind of server error."""
 
     class DatasetNotFoundError(RuntimeError):
         """Error raised when a dataset cannot be found."""
 
+        def __init__(self, message: str = "Dataset not found"):
+            super().__init__(message)
+            self.message = message
+
     class AccessGrantsError(RuntimeError):
         """Error that is raised when access grants cannot be processed."""
 
+        def __init__(self, message: str = "Access grants error"):
+            super().__init__(message)
+            self.message = message
+
     class AccessGrantNotFoundError(AccessGrantsError):
         """Error raised when an access grant cannot be found."""
+
+        def __init__(self, message: str = "Access grant not found"):
+            super().__init__(message)
+            self.message = message
 
     @abstractmethod
     async def create(

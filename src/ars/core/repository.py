@@ -112,7 +112,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         """
         user_id = auth_context.id
         if not user_id or creation_data.user_id != user_id:
-            authorization_error = self.AccessRequestAuthorizationError("Not authorized")
+            authorization_error = self.AccessRequestAuthorizationError()
             log.error(authorization_error)
             raise authorization_error
 
@@ -175,7 +175,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         Raises an `AccessRequestAuthorizationError` if the user is not authorized.
         """
         if not auth_context.id:
-            authorization_error = self.AccessRequestAuthorizationError("Not authorized")
+            authorization_error = self.AccessRequestAuthorizationError()
             log.error(authorization_error)
             raise authorization_error
         is_data_steward = has_role(auth_context, DATA_STEWARD_ROLE)
@@ -183,9 +183,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             if user_id is None:
                 user_id = auth_context.id
             elif user_id != auth_context.id:
-                authorization_error = self.AccessRequestAuthorizationError(
-                    "Not authorized"
-                )
+                authorization_error = self.AccessRequestAuthorizationError()
                 log.error(authorization_error)
                 raise authorization_error
 
@@ -233,31 +231,25 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         try:
             request = await self._request_dao.get_by_id(access_request_id)
         except ResourceNotFoundError as error:
-            not_found_error = self.AccessRequestNotFoundError(
-                "Access request not found"
-            )
+            not_found_error = self.AccessRequestNotFoundError()
             log.error(not_found_error, extra={"access_request_id": access_request_id})
             raise not_found_error from error
 
         user_id = auth_context.id
         if not (user_id and has_role(auth_context, DATA_STEWARD_ROLE)):
-            authorization_error = self.AccessRequestAuthorizationError("Not authorized")
+            authorization_error = self.AccessRequestAuthorizationError()
             log.error(authorization_error)
             raise authorization_error
 
         if request.status != AccessRequestStatus.PENDING:
-            invalid_state_error = self.AccessRequestClosed(
-                "Access request has already been processed"
-            )
+            invalid_state_error = self.AccessRequestClosed()
             log.error(invalid_state_error)
             raise invalid_state_error
 
         status = patch_data.status or request.status
         iva_id = patch_data.iva_id or request.iva_id
         if status == AccessRequestStatus.ALLOWED and not iva_id:
-            missing_iva_error = self.AccessRequestMissingIva(
-                "An IVA ID must be specified"
-            )
+            missing_iva_error = self.AccessRequestMissingIva()
             log.error(missing_iva_error)
             raise missing_iva_error
 
@@ -361,7 +353,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         try:
             await self._dataset_dao.delete(id_=dataset_id)
         except ResourceNotFoundError as error:
-            dataset_not_found_error = self.DatasetNotFoundError("Dataset not found")
+            dataset_not_found_error = self.DatasetNotFoundError()
             log.error(dataset_not_found_error, extra={"dataset_id": dataset_id})
             raise dataset_not_found_error from error
 
@@ -395,7 +387,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         try:
             return await self._dataset_dao.get_by_id(dataset_id)
         except ResourceNotFoundError as error:
-            dataset_not_found_error = self.DatasetNotFoundError("Dataset not found")
+            dataset_not_found_error = self.DatasetNotFoundError()
             log.error(dataset_not_found_error, extra={"dataset_id": dataset_id})
             raise dataset_not_found_error from error
 
@@ -420,7 +412,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         - `DatasetNotFoundError` if any of the corresponding datasets was not found
         """
         if not auth_context.id:
-            authorization_error = self.AccessRequestAuthorizationError("Not authorized")
+            authorization_error = self.AccessRequestAuthorizationError()
             log.error(authorization_error)
             raise authorization_error
         is_data_steward = has_role(auth_context, DATA_STEWARD_ROLE)
@@ -478,13 +470,13 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         - `AccessRequestServerError` if the access grant could not be registered
         """
         if not auth_context.id or not has_role(auth_context, DATA_STEWARD_ROLE):
-            authorization_error = self.AccessRequestAuthorizationError("Not authorized")
+            authorization_error = self.AccessRequestAuthorizationError()
             log.error(authorization_error)
             raise authorization_error
         try:
             return await self._access_grants.revoke_download_access_grant(grant_id)
         except self._access_grants.AccessGrantNotFoundError as error:
-            not_found_error = self.AccessGrantNotFoundError("Access grant not found")
+            not_found_error = self.AccessGrantNotFoundError()
             log.error(not_found_error, extra={"grant_id": grant_id})
             raise not_found_error from error
         except self._access_grants.AccessGrantsError as error:

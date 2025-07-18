@@ -797,7 +797,7 @@ async def test_set_status_to_allowed_without_iva():
     assert original_dict.pop("changed_by") is None
 
     with pytest.raises(
-        repository.AccessRequestMissingIva, match="An IVA ID must be specified"
+        repository.AccessRequestMissingIva, match="Access request is missing an IVA"
     ):
         await repository.update(
             "request-id-4",
