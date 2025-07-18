@@ -287,7 +287,7 @@ class AccessGrantsDummy(AccessGrantsPort):
             f" for {dataset_id} from {valid_from} until {valid_until}"
         )
 
-    async def download_access_grants(
+    async def get_download_access_grants(
         self,
         user_id: str | None = None,
         iva_id: str | None = None,

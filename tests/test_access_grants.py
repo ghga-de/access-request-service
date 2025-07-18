@@ -155,7 +155,7 @@ async def test_get_access_grants(
     httpx_mock: HTTPXMock,
 ):
     """Test fetching download access grants"""
-    get_grants = grants_adapter.download_access_grants
+    get_grants = grants_adapter.get_download_access_grants
 
     url = GRANTS_URL
     if with_params:
@@ -184,7 +184,7 @@ async def test_get_access_grants_with_data_error(
     httpx_mock: HTTPXMock,
 ):
     """Test fetching download access grants with data errors"""
-    get_grants = grants_adapter.download_access_grants
+    get_grants = grants_adapter.get_download_access_grants
 
     # Simulate a server response with missing user name
     text = GRANT.model_dump_json(exclude={"user_name"})
@@ -209,7 +209,7 @@ async def test_get_access_grants_with_server_error(
     httpx_mock: HTTPXMock,
 ):
     """Test fetching download access grants with server error"""
-    get_grants = grants_adapter.download_access_grants
+    get_grants = grants_adapter.get_download_access_grants
     httpx_mock.add_response(method="GET", url=GRANTS_URL, status_code=500)
 
     with pytest.raises(
@@ -224,7 +224,7 @@ async def test_get_access_grants_with_timeout(
     httpx_mock: HTTPXMock,
 ):
     """Test fetching download access grants when there is a network timeout"""
-    get_grants = grants_adapter.download_access_grants
+    get_grants = grants_adapter.get_download_access_grants
     httpx_mock.add_exception(httpx.ReadTimeout("Simulated network problem"))
 
     with pytest.raises(

@@ -434,7 +434,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 log.error(authorization_error)
                 raise authorization_error
         try:
-            grants = await self._access_grants.download_access_grants(
+            grants = await self._access_grants.get_download_access_grants(
                 user_id=user_id, iva_id=iva_id, dataset_id=dataset_id, valid=valid
             )
         except self._access_grants.AccessGrantsError as error:
