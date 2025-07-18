@@ -946,7 +946,7 @@ async def test_get_own_access_grants(
     httpx_mock: HTTPXMock,
     auth_headers_doe: dict[str, str],
 ):
-    """Test that users can get their own_access grants."""
+    """Test that users can get their own access grants."""
     client = rest.rest_client
 
     user_id = GRANT_DATA["user_id"]
