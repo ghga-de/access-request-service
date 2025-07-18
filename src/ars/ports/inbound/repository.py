@@ -164,6 +164,7 @@ class AccessRequestRepositoryPort(ABC):
         Raises:
         - `AccessRequestAuthorizationError` if the user is not authorized
         - `AccessGrantsError` if the grants could not be fetched
+        - `DatasetNotFoundError` if any of the corresponding datasets was not found
         """
         ...
 
