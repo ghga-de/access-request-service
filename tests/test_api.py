@@ -1084,7 +1084,31 @@ async def test_get_access_grants_with_invalid_claims(
         json={"foo": "bar"},
     )
 
-    # test getting access grants for another user
+    # test getting access grants when there is a downstream schema mismatch
+    response = await client.get(
+        "/access-grants",
+        headers=auth_headers_steward,
+    )
+    assert response.status_code == 500
+    assert response.json()["detail"] == "Access requests could not be fetched."
+
+
+async def test_get_access_grants_with_missing_dataset(
+    rest: RestFixture, httpx_mock: HTTPXMock, auth_headers_steward: dict[str, str]
+):
+    """Test that if a grant is missing its dataset we get an error."""
+    client = rest.rest_client
+
+    httpx_mock.add_response(
+        method="GET",
+        url="http://access/grants",
+        status_code=200,
+        json=[{**BASE_GRANT_DATA, "dataset_id": "non-existing-dataset-id"}],
+    )
+
+    # test getting access grants when the corresponding dataset is not found
+    # (this should not crash the service, but log and return an error
+    # since it indicates that the database is out of sync with upstream services)
     response = await client.get(
         "/access-grants",
         headers=auth_headers_steward,
