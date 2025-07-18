@@ -305,7 +305,7 @@ class AccessGrantsDummy(AccessGrantsPort):
                 created=IAT,
                 valid_from=ar.access_starts,
                 valid_until=ar.access_ends,
-                user_name=ar.full_user_name.replace("Dr. ", ""),
+                user_name=ar.full_user_name.removeprefix("Dr. "),
                 user_email=ar.email,
                 user_title="Dr." if ar.full_user_name.startswith("Dr.") else None,
             )
