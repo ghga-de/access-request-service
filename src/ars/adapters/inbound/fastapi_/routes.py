@@ -268,7 +268,7 @@ async def get_access_grants(  # noqa: PLR0913
         )
     except repository.AccessRequestAuthorizationError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
-    except repository.AccessGrantsError as exc:
+    except (repository.AccessGrantsError, repository.DatasetNotFoundError) as exc:
         log.error("Could not get data access grants: %s", exc)
         raise HTTPException(
             status_code=500, detail="Access requests could not be fetched."
