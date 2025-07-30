@@ -348,9 +348,9 @@ ghga-event-schemas==9.2.0 \
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
-ghga-service-commons==5.0.0 \
-    --hash=sha256:9c772d7b7fb47d95e0a8c4522f2c79fc11bc3b8125090fe6b7cee86b1685f226 \
-    --hash=sha256:ffda793f369171d2b79c55fb5e7d218a455f964edacb5902bfa34f6c962f5532
+ghga-service-commons==4.1.2 \
+    --hash=sha256:151957afe57c0556510ab75ee030086a5dbe4cdd5a76ce46cc97b11cb57b0800 \
+    --hash=sha256:a40d550f1cbb450e2a172deff7994fa69d6d7a0dd2f2cb213068cda24c85b16a
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
@@ -362,9 +362,9 @@ h11==0.16.0 \
     #   -c lock/requirements-dev.txt
     #   httpcore
     #   uvicorn
-hexkit==7.0.0 \
-    --hash=sha256:9b99a5c73fd2a21ba436303e8bebf679d2d68ebeb2df9bff06c6222366a5e98f \
-    --hash=sha256:e7d954bad8510909d8e2c869347e77cfb29b48092e53678e34a9fa00a0b5091c
+hexkit==5.4.1 \
+    --hash=sha256:6879fd265e891cd5f3bfd1d86e3f75f15e4ec9b6e85d4cd121dc73d9bd84dddd \
+    --hash=sha256:dda609b31300cd2aedaf873d456c2159c6489ded8f7ba74b6e6cc07f9a1b8e33
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
@@ -474,6 +474,12 @@ mdurl==0.1.2 \
     # via
     #   -c lock/requirements-dev.txt
     #   markdown-it-py
+motor==3.7.1 \
+    --hash=sha256:27b4d46625c87928f331a6ca9d7c51c2f518ba0e270939d395bc1ddc89d64526 \
+    --hash=sha256:8a63b9049e38eeeb56b4fdd57c3312a6d1f25d01db717fe7d82222393c410298
+    # via
+    #   -c lock/requirements-dev.txt
+    #   hexkit
 opentelemetry-api==1.36.0 \
     --hash=sha256:02f20bcacf666e1333b6b1f04e647dc1d5111f86b8e510238fcc56d7762cda8c \
     --hash=sha256:9a72572b9c416d004d492cbc6e61962c0501eaf945ece9b5a0f56597d8348aa0
@@ -678,7 +684,7 @@ pymongo==4.13.2 \
     --hash=sha256:f8057f9bc9c94a8fd54ee4f5e5106e445a8f406aff2df74746f21c8791ee2403
     # via
     #   -c lock/requirements-dev.txt
-    #   hexkit
+    #   motor
 python-dotenv==1.1.1 \
     --hash=sha256:31f23644fe2602f88ff55e1f5c79ba497e01224ee7737937930c448e4d0e24dc \
     --hash=sha256:a8a6399716257f45be6a007360200409fce5cda2661e3dec71d23dc15f6189ab
