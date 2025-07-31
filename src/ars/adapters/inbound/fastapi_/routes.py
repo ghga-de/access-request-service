@@ -84,7 +84,7 @@ async def create_access_request(
     except repository.AccessRequestInvalidDuration as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
-        log.error("Could not create access request: %s", exc)
+        log.error("Could not create access request: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500, detail="Access request could not be created."
         ) from exc
@@ -187,7 +187,7 @@ async def get_access_request(
     except repository.AccessRequestNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
-        log.error("Could not get access request: %s", exc)
+        log.error("Could not get access request: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500, detail="Access request could not be fetched."
         ) from exc
@@ -235,7 +235,7 @@ async def patch_access_request(
     ) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
-        log.error("Could not modify access request: %s", exc)
+        log.error("Could not modify access request: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500, detail="Access request could not be modified."
         ) from exc
