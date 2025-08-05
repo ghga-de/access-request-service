@@ -22,7 +22,7 @@ from operator import attrgetter
 from typing import Any, cast
 
 from ghga_service_commons.auth.ghga import AuthContext, has_role
-from ghga_service_commons.utils.utc_dates import now_as_utc
+from hexkit.utils import now_utc_ms_prec
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -116,7 +116,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             log.error(authorization_error)
             raise authorization_error
 
-        request_created = now_as_utc()
+        request_created = now_utc_ms_prec()
 
         access_starts = creation_data.access_starts
         if request_created > access_starts:
@@ -289,7 +289,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         access_starts = patch_data.access_starts or request.access_starts
         # force start to be not earlier than the current date
-        access_starts = max(now_as_utc(), access_starts)
+        access_starts = max(now_utc_ms_prec(), access_starts)
         access_ends = patch_data.access_ends or request.access_ends
         if access_starts >= access_ends:
             invalid_duration_error = self.AccessRequestInvalidDuration(
@@ -312,7 +312,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
         if status != AccessRequestStatus.PENDING:
             update["status"] = status
-            update["status_changed"] = now_as_utc()
+            update["status_changed"] = now_utc_ms_prec()
             update["changed_by"] = user_id
 
         if patch_data.ticket_id is not None:
@@ -370,7 +370,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 await self._request_dao.update(updated_request)
             elif (
                 request.status == AccessRequestStatus.ALLOWED
-                and request.access_ends > now_as_utc()
+                and request.access_ends > now_utc_ms_prec()
             ):
                 log.warning(
                     "A valid access request with ID %s already exists for the updated dataset with ID %s.",
@@ -397,7 +397,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             if request.status == AccessRequestStatus.PENDING:
                 update = {
                     "status": AccessRequestStatus.DENIED,
-                    "status_changed": now_as_utc(),
+                    "status_changed": now_utc_ms_prec(),
                     "note_to_requester": "This dataset has been deleted",
                     "changed_by": None,
                 }
@@ -405,7 +405,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
                 await self._request_dao.update(updated_request)
             elif (
                 request.status == AccessRequestStatus.ALLOWED
-                and request.access_ends > now_as_utc()
+                and request.access_ends > now_utc_ms_prec()
             ):
                 log.warning(
                     "A valid access request with ID %s still exists for the deleted dataset with ID %s.",

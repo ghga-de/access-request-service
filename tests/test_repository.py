@@ -23,9 +23,10 @@ from typing import Any
 
 import pytest
 from ghga_service_commons.auth.ghga import AcademicTitle, AuthContext
-from ghga_service_commons.utils.utc_dates import UTCDatetime, now_as_utc, utc_datetime
+from ghga_service_commons.utils.utc_dates import UTCDatetime, utc_datetime
 from hexkit.custom_types import ID
 from hexkit.protocols.dao import ResourceAlreadyExistsError
+from hexkit.utils import now_utc_ms_prec
 
 from ars.core.models import (
     AccessGrant,
@@ -51,7 +52,7 @@ pytestmark = pytest.mark.asyncio()
 ONE_HOUR = timedelta(seconds=60 * 60)
 ONE_YEAR = timedelta(days=365)
 
-IAT = now_as_utc()
+IAT = now_utc_ms_prec()
 EXP = IAT + ONE_HOUR
 
 auth_context_doe = AuthContext(
@@ -350,7 +351,7 @@ repository = AccessRequestRepository(
 
 async def test_can_create_request():
     """Test that users can create an access request for themselves"""
-    access_starts = now_as_utc()
+    access_starts = now_utc_ms_prec()
     access_ends = access_starts + ONE_YEAR
     creation_data = AccessRequestCreationData(
         user_id="id-of-john-doe@ghga.de",
@@ -360,7 +361,7 @@ async def test_can_create_request():
         access_starts=access_starts,
         access_ends=access_ends,
     )
-    creation_date = now_as_utc()
+    creation_date = now_utc_ms_prec()
 
     # Seed dataset so `repository.create` doesn't fail when it retrieves the dataset
     await repository.register_dataset(
@@ -393,7 +394,7 @@ async def test_can_create_request():
 
 async def test_can_create_request_with_an_iva():
     """Test that users can create an access request already specifying an IVA"""
-    access_starts = now_as_utc()
+    access_starts = now_utc_ms_prec()
     access_ends = access_starts + ONE_YEAR
     creation_data = AccessRequestCreationData(
         user_id="id-of-john-doe@ghga.de",
@@ -426,7 +427,7 @@ async def test_can_create_request_with_an_iva():
 
 async def test_cannot_create_request_for_somebody_else():
     """Test that users cannot create an access request for somebody else"""
-    access_starts = now_as_utc()
+    access_starts = now_utc_ms_prec()
     access_ends = access_starts + ONE_YEAR
     creation_data = AccessRequestCreationData(
         user_id="id-of-john-foo@ghga.de",
@@ -442,7 +443,7 @@ async def test_cannot_create_request_for_somebody_else():
 
 async def test_silently_correct_request_that_is_too_early():
     """Test that requests that are too early are silently corrected"""
-    creation_date = now_as_utc()
+    creation_date = now_utc_ms_prec()
     access_starts = creation_date - 0.5 * ONE_YEAR
     access_ends = access_starts + 1.5 * ONE_YEAR
     creation_data = AccessRequestCreationData(
@@ -475,7 +476,7 @@ async def test_silently_correct_request_that_is_too_early():
 
 async def test_cannot_create_request_too_much_in_advance():
     """Test that users cannot create an access request too much in advance"""
-    access_starts = now_as_utc() + 1.5 * ONE_YEAR
+    access_starts = now_utc_ms_prec() + 1.5 * ONE_YEAR
     access_ends = access_starts + ONE_YEAR
     creation_data = AccessRequestCreationData(
         user_id="id-of-john-doe@ghga.de",
@@ -496,7 +497,7 @@ async def test_cannot_create_request_too_much_in_advance():
 
 async def test_cannot_create_request_too_short():
     """Test that users cannot create an access request that is too short"""
-    access_starts = now_as_utc()
+    access_starts = now_utc_ms_prec()
     access_ends = access_starts + timedelta(days=29)
     creation_data = AccessRequestCreationData(
         user_id="id-of-john-doe@ghga.de",
@@ -517,7 +518,7 @@ async def test_cannot_create_request_too_short():
 
 async def test_cannot_create_request_too_long():
     """Test that users cannot create an access request that is too long"""
-    access_starts = now_as_utc()
+    access_starts = now_utc_ms_prec()
     access_ends = access_starts + 2.5 * ONE_YEAR
     creation_data = AccessRequestCreationData(
         user_id="id-of-john-doe@ghga.de",
@@ -538,7 +539,7 @@ async def test_cannot_create_request_too_long():
 
 async def test_cannot_create_request_nonexistent_dataset():
     """Make sure we get a DatasetNotFoundError when the requested dataset ID doesn't exist."""
-    access_starts = now_as_utc()
+    access_starts = now_utc_ms_prec()
     access_ends = access_starts + ONE_YEAR
     creation_data = AccessRequestCreationData(
         user_id="id-of-john-doe@ghga.de",
@@ -722,7 +723,7 @@ async def test_set_status_to_allowed():
     assert changed_dict.pop("iva_id") == "some-iva"
     status_changed = changed_dict.pop("status_changed")
     assert status_changed is not None
-    assert 0 <= (now_as_utc() - status_changed).seconds < 5
+    assert 0 <= (now_utc_ms_prec() - status_changed).seconds < 5
     assert changed_dict.pop("changed_by") == "id-of-rod-steward@ghga.de"
     assert changed_dict == original_dict
 
@@ -767,7 +768,7 @@ async def test_set_status_to_allowed_and_modify_duration():
     assert access_ends == IAT + timedelta(days=360)
     status_changed = changed_dict.pop("status_changed")
     assert status_changed is not None
-    assert 0 <= (now_as_utc() - status_changed).seconds < 5
+    assert 0 <= (now_utc_ms_prec() - status_changed).seconds < 5
     assert changed_dict.pop("changed_by") == "id-of-rod-steward@ghga.de"
     assert changed_dict == original_dict
 
@@ -798,7 +799,7 @@ async def test_set_status_to_allowed_reusing_iva():
     assert changed_dict.pop("status") == AccessRequestStatus.ALLOWED
     status_changed = changed_dict.pop("status_changed")
     assert status_changed is not None
-    assert 0 <= (now_as_utc() - status_changed).seconds < 5
+    assert 0 <= (now_utc_ms_prec() - status_changed).seconds < 5
     assert changed_dict.pop("changed_by") == "id-of-rod-steward@ghga.de"
     assert changed_dict == original_dict
 
@@ -834,7 +835,7 @@ async def test_set_status_to_allowed_overriding_iva():
     assert changed_dict.pop("status") == AccessRequestStatus.ALLOWED
     status_changed = changed_dict.pop("status_changed")
     assert status_changed is not None
-    assert 0 <= (now_as_utc() - status_changed).seconds < 5
+    assert 0 <= (now_utc_ms_prec() - status_changed).seconds < 5
     assert changed_dict.pop("changed_by") == "id-of-rod-steward@ghga.de"
     assert changed_dict == original_dict
 
@@ -1045,7 +1046,7 @@ async def test_set_past_access_start_date():
     request = await access_request_dao.get_by_id("request-id-4")
     assert request.status == AccessRequestStatus.PENDING
 
-    now = now_as_utc()
+    now = now_utc_ms_prec()
 
     await repository.update(
         "request-id-4",
@@ -1069,7 +1070,7 @@ async def test_extend_access_end_too_much():
     request = await access_request_dao.get_by_id("request-id-4")
     assert request.status == AccessRequestStatus.PENDING
 
-    now = now_as_utc()
+    now = now_utc_ms_prec()
 
     with pytest.raises(
         repository.AccessRequestInvalidDuration,

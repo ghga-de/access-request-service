@@ -22,7 +22,7 @@ from datetime import timedelta
 
 import httpx
 import pytest
-from ghga_service_commons.utils.utc_dates import now_as_utc
+from hexkit.utils import now_utc_ms_prec
 from pytest_asyncio import fixture as async_fixture
 from pytest_httpx import HTTPXMock
 
@@ -37,7 +37,7 @@ DOWNLOAD_ACCESS_URL = "http://test-access:1234/download-access"
 USER_ID = "some-user-id"
 IVA_ID = "some-iva-id"
 DATASET_ID = "DS001"
-DATE_NOW = now_as_utc()
+DATE_NOW = now_utc_ms_prec()
 VALID_FROM = DATE_NOW - timedelta(days=7)
 VALID_UNTIL = DATE_NOW + timedelta(days=30)
 

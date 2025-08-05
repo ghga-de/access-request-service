@@ -18,12 +18,11 @@
 from datetime import UTC, datetime
 
 import pytest
-from ghga_service_commons.utils.utc_dates import now_as_utc
 from hexkit.correlation import set_new_correlation_id
 from hexkit.providers.akafka.testutils import KafkaFixture
-from hexkit.providers.mongodb import MongoDbDaoFactory
 from hexkit.providers.mongodb.testutils import MongoDbFixture
 from hexkit.providers.mongokafka import MongoKafkaDaoPublisherFactory
+from hexkit.utils import now_utc_ms_prec
 
 from ars.adapters.outbound.daos import get_access_request_dao, get_dataset_dao
 from ars.core.models import (
@@ -55,7 +54,7 @@ access_request = AccessRequest(
     dataset_description="Some Description",
     dac_alias="Some DAC",
     dac_email="dac@org.dev",
-    request_created=now_as_utc(),
+    request_created=now_utc_ms_prec(),
 )
 
 DATASET = Dataset(
@@ -131,8 +130,7 @@ async def test_delete(config, kafka: KafkaFixture, mongodb: MongoDbFixture):
         assert event.key == event.payload["id"] == access_request.id
         assert event.payload["status"] == "pending"
 
-        dao_factory = MongoDbDaoFactory(config=config)
-        dataset_dao = await get_dataset_dao(dao_factory=dao_factory)
+        dataset_dao = await get_dataset_dao(dao_factory=mongodb.dao_factory)
         await dataset_dao.insert(DATASET)
 
         # Test effect on access request if dataset is deleted

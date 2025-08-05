@@ -20,16 +20,16 @@ import json
 from datetime import datetime, timedelta
 
 import pytest
-from ghga_service_commons.utils.utc_dates import now_as_utc
 from hexkit.custom_types import JsonObject
 from hexkit.providers.mongodb.testutils import MongoDbFixture
+from hexkit.utils import now_utc_ms_prec
 from pytest_httpx import HTTPXMock
 
 from tests.fixtures import RestFixture
 
 pytestmark = pytest.mark.asyncio()
 
-DATE_NOW = now_as_utc()
+DATE_NOW = now_utc_ms_prec()
 ONE_YEAR = timedelta(days=365)
 DATASET_TITLE = "A Great Dataset"
 DATASET_DESCRIPTION = "This is a description of A Great Dataset"
