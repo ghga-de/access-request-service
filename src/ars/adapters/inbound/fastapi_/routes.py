@@ -21,6 +21,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Path, Query, Response
 from fastapi.exceptions import HTTPException
+from pydantic import UUID4
 
 from ars.adapters.inbound.fastapi_ import dummies
 from ars.adapters.inbound.fastapi_.auth import StewardAuthContext, UserAuthContext
@@ -111,7 +112,7 @@ async def get_access_requests(
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     user_id: Annotated[
-        str | None,
+        UUID4 | None,
         Query(
             ...,
             alias="user_id",
@@ -172,7 +173,7 @@ async def get_access_request(
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     access_request_id: Annotated[
-        str,
+        UUID4,
         Path(..., alias="access_request_id", description="ID of the access request"),
     ],
 ) -> AccessRequest:
@@ -209,7 +210,7 @@ async def get_access_request(
 )
 async def patch_access_request(
     access_request_id: Annotated[
-        str,
+        UUID4,
         Path(..., alias="access_request_id", description="ID of the access request"),
     ],
     patch_data: AccessRequestPatchData,
@@ -262,7 +263,7 @@ async def get_access_grants(  # noqa: PLR0913
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     user_id: Annotated[
-        str | None,
+        UUID4 | None,
         Query(
             ...,
             alias="user_id",
@@ -270,7 +271,7 @@ async def get_access_grants(  # noqa: PLR0913
         ),
     ] = None,
     iva_id: Annotated[
-        str | None,
+        UUID4 | None,
         Query(
             ...,
             alias="iva_id",
@@ -333,7 +334,7 @@ async def get_access_grants(  # noqa: PLR0913
 )
 async def revoke_access_grant(
     grant_id: Annotated[
-        str,
+        UUID4,
         Path(
             ...,
             alias="grant_id",

@@ -29,11 +29,13 @@ components:
           type: string
         id:
           description: Internal grant ID (same as claim ID)
+          format: uuid4
           title: Id
           type: string
         iva_id:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: ID of an IVA associated with this grant
           title: Iva Id
@@ -44,6 +46,7 @@ components:
           type: string
         user_id:
           description: Internal user ID
+          format: uuid4
           title: User Id
           type: string
         user_name:
@@ -96,7 +99,8 @@ components:
           type: string
         changed_by:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: The ID of the data steward who made the status change
           title: Changed By
@@ -135,6 +139,7 @@ components:
           type: string
         id:
           description: ID of the access request
+          format: uuid4
           title: Id
           type: string
         internal_note:
@@ -145,7 +150,8 @@ components:
           title: Internal Note
         iva_id:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: ID of the IVA to be used for this request, but this can also
             be specified later
@@ -184,6 +190,7 @@ components:
           title: Ticket Id
         user_id:
           description: ID of the user who requests access
+          format: uuid4
           title: User Id
           type: string
       required:
@@ -226,7 +233,8 @@ components:
           type: string
         iva_id:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: ID of the IVA to be used for this request, but this can also
             be specified later
@@ -237,6 +245,7 @@ components:
           type: string
         user_id:
           description: ID of the user who requests access
+          format: uuid4
           title: User Id
           type: string
       required:
@@ -274,7 +283,8 @@ components:
           title: Internal Note
         iva_id:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: ID of the IVA to be used for this request
           title: Iva Id
@@ -356,7 +366,8 @@ paths:
         required: false
         schema:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
@@ -366,7 +377,8 @@ paths:
         required: false
         schema:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: The ID of the IVA
           title: Iva Id
@@ -420,6 +432,7 @@ paths:
         required: true
         schema:
           description: The ID of the data access grant to revoke
+          format: uuid4
           title: Grant Id
           type: string
       responses:
@@ -451,7 +464,8 @@ paths:
         required: false
         schema:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
@@ -533,6 +547,7 @@ paths:
         required: true
         schema:
           description: ID of the access request
+          format: uuid4
           title: Access Request Id
           type: string
       responses:
@@ -568,6 +583,7 @@ paths:
         required: true
         schema:
           description: ID of the access request
+          format: uuid4
           title: Access Request Id
           type: string
       requestBody:

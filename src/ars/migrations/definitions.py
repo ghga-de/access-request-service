@@ -49,7 +49,7 @@ class V2Migration(MigrationDefinition, Reversible):
         async def update_access_request_doc(doc: Document) -> Document:
             """Populate the required fields for access request docs"""
             doc["__metadata__"] = {
-                "correlation_id": new_correlation_id(),
+                "correlation_id": str(new_correlation_id()),
                 "published": True,
                 "deleted": False,
             }

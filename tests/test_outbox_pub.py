@@ -16,6 +16,7 @@
 """Tests for the events published by the access request outbox DAO"""
 
 from datetime import UTC, datetime
+from uuid import uuid4
 
 import pytest
 from hexkit.correlation import set_new_correlation_id
@@ -38,8 +39,8 @@ pytestmark = pytest.mark.asyncio()
 
 
 CREATION_DATA = AccessRequestCreationData(
-    user_id="id-of-john-doe@ghga.de",
-    iva_id="some-iva",
+    user_id=uuid4(),
+    iva_id=uuid4(),
     dataset_id="DS001",
     email="me@john-doe.name",
     request_text="Can I access some dataset?",
@@ -87,7 +88,7 @@ async def test_upsert(config, kafka: KafkaFixture, mongodb: MongoDbFixture):
         assert len(recorder.recorded_events) == 1
         event = recorder.recorded_events[0]
         assert event.type_ == "upserted"
-        assert event.key == event.payload["id"] == access_request.id
+        assert event.key == event.payload["id"] == str(access_request.id)
         assert event.payload["status"] == "pending"
 
         # Perform an update to the request
@@ -101,7 +102,7 @@ async def test_upsert(config, kafka: KafkaFixture, mongodb: MongoDbFixture):
         assert len(recorder.recorded_events) == 1
         event = recorder.recorded_events[0]
         assert event.type_ == "upserted"
-        assert event.key == event.payload["id"] == access_request.id
+        assert event.key == event.payload["id"] == str(access_request.id)
         assert event.payload["status"] == "allowed"
 
 
@@ -127,7 +128,7 @@ async def test_delete(config, kafka: KafkaFixture, mongodb: MongoDbFixture):
         assert len(recorder.recorded_events) == 1
         event = recorder.recorded_events[0]
         assert event.type_ == "upserted"
-        assert event.key == event.payload["id"] == access_request.id
+        assert event.key == event.payload["id"] == str(access_request.id)
         assert event.payload["status"] == "pending"
 
         dataset_dao = await get_dataset_dao(dao_factory=mongodb.dao_factory)
@@ -148,5 +149,5 @@ async def test_delete(config, kafka: KafkaFixture, mongodb: MongoDbFixture):
         assert len(recorder.recorded_events) == 1
         event = recorder.recorded_events[0]
         assert event.type_ == "upserted"
-        assert event.key == event.payload["id"] == access_request.id
+        assert event.key == event.payload["id"] == str(access_request.id)
         assert event.payload["status"] == "denied"
