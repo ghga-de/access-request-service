@@ -20,10 +20,11 @@ import logging
 from datetime import timedelta
 from operator import attrgetter
 from typing import Any, cast
+from uuid import UUID
 
 from ghga_service_commons.auth.ghga import AuthContext, has_role
 from hexkit.utils import now_utc_ms_prec
-from pydantic import Field
+from pydantic import UUID4, Field
 from pydantic_settings import BaseSettings
 
 from ars.core.models import (
@@ -111,7 +112,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         - `DatasetNotFoundError` if no dataset with given ID is found.
         """
         user_id = auth_context.id
-        if not user_id or creation_data.user_id != user_id:
+        if not user_id or str(creation_data.user_id) != user_id:
             authorization_error = self.AccessRequestAuthorizationError()
             log.error(authorization_error)
             raise authorization_error
@@ -162,7 +163,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
     async def get(
         self,
-        access_request_id: str,
+        access_request_id: UUID4,
         *,
         auth_context: AuthContext,
     ) -> AccessRequest:
@@ -183,7 +184,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             request = await self._request_dao.get_by_id(access_request_id)
             if (
                 not has_role(auth_context, DATA_STEWARD_ROLE)
-                and request.user_id != auth_context.id
+                and str(request.user_id) != auth_context.id
             ):
                 # if the user does not have access, report this as not found
                 raise ResourceNotFoundError(id_=access_request_id)
@@ -198,7 +199,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         self,
         *,
         dataset_id: str | None = None,
-        user_id: str | None = None,
+        user_id: UUID4 | None = None,
         status: AccessRequestStatus | None = None,
         auth_context: AuthContext,
     ) -> list[AccessRequest]:
@@ -215,8 +216,8 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         is_data_steward = has_role(auth_context, DATA_STEWARD_ROLE)
         if not is_data_steward:
             if user_id is None:
-                user_id = auth_context.id
-            elif user_id != auth_context.id:
+                user_id = UUID(auth_context.id)
+            elif str(user_id) != auth_context.id:
                 authorization_error = self.AccessRequestAuthorizationError()
                 log.error(authorization_error)
                 raise authorization_error
@@ -243,7 +244,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
     async def update(  # noqa: C901, PLR0915
         self,
-        access_request_id: str,
+        access_request_id: UUID4,
         *,
         patch_data: AccessRequestPatchData,
         auth_context: AuthContext,
@@ -269,7 +270,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             log.error(not_found_error, extra={"access_request_id": access_request_id})
             raise not_found_error from error
 
-        user_id = auth_context.id
+        user_id = UUID(auth_context.id)
         if not (user_id and has_role(auth_context, DATA_STEWARD_ROLE)):
             authorization_error = self.AccessRequestAuthorizationError()
             log.error(authorization_error)
@@ -329,7 +330,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
             try:
                 await self._access_grants.grant_download_access(
                     user_id=request.user_id,
-                    iva_id=cast(str, iva_id),  # has already been checked above
+                    iva_id=cast(UUID4, iva_id),  # has already been checked above
                     dataset_id=request.dataset_id,
                     valid_from=access_starts,
                     valid_until=access_ends,
@@ -428,8 +429,8 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
     async def get_grants(
         self,
         *,
-        user_id: str | None = None,
-        iva_id: str | None = None,
+        user_id: UUID4 | None = None,
+        iva_id: UUID4 | None = None,
         dataset_id: str | None = None,
         valid: bool | None = None,
         auth_context: AuthContext,
@@ -452,8 +453,8 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
         is_data_steward = has_role(auth_context, DATA_STEWARD_ROLE)
         if not is_data_steward:
             if user_id is None:
-                user_id = auth_context.id
-            elif user_id != auth_context.id:
+                user_id = UUID(auth_context.id)
+            elif str(user_id) != auth_context.id:
                 authorization_error = self.AccessRequestAuthorizationError(
                     "Not authorized"
                 )
@@ -490,7 +491,7 @@ class AccessRequestRepository(AccessRequestRepositoryPort):
 
     async def revoke_grant(
         self,
-        grant_id: str,
+        grant_id: UUID4,
         *,
         auth_context: AuthContext,
     ) -> None:
