@@ -366,7 +366,8 @@ paths:
         required: false
         schema:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
@@ -376,7 +377,8 @@ paths:
         required: false
         schema:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: The ID of the IVA
           title: Iva Id
@@ -461,7 +463,8 @@ paths:
         required: false
         schema:
           anyOf:
-          - type: string
+          - format: uuid4
+            type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
