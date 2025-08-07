@@ -22,7 +22,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Path, Query, Response
 from fastapi.exceptions import HTTPException
-from pydantic import UUID4
 
 from ars.adapters.inbound.fastapi_ import dummies
 from ars.adapters.inbound.fastapi_.auth import StewardAuthContext, UserAuthContext
@@ -95,7 +94,7 @@ async def create_access_request(
 
 @router.get(
     "/access-requests",
-    operation_id="get_access_request",
+    operation_id="get_access_requests",
     tags=["AccessRequests"],
     summary="Get access requests",
     description="Endpoint used to get existing access requests",
@@ -113,7 +112,7 @@ async def get_access_requests(
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     user_id: Annotated[
-        UUID4 | None,
+        str | None,
         Query(
             ...,
             alias="user_id",
@@ -139,8 +138,14 @@ async def get_access_requests(
 ) -> list[AccessRequest]:
     """Get access requests"""
     try:
+        _user_id = UUID(user_id) if user_id else None
+    except ValueError:
+        log.debug("Invalid user_id supplied: %s", user_id)
+        return []
+
+    try:
         return await repository.find_all(
-            user_id=user_id,
+            user_id=_user_id,
             dataset_id=dataset_id,
             status=status,
             auth_context=auth_context,
@@ -276,7 +281,7 @@ async def get_access_grants(  # noqa: PLR0913
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     user_id: Annotated[
-        UUID4 | None,
+        str | None,
         Query(
             ...,
             alias="user_id",
@@ -284,7 +289,7 @@ async def get_access_grants(  # noqa: PLR0913
         ),
     ] = None,
     iva_id: Annotated[
-        UUID4 | None,
+        str | None,
         Query(
             ...,
             alias="iva_id",
@@ -314,9 +319,21 @@ async def get_access_grants(  # noqa: PLR0913
     and by whether the grant is currently valid or not.
     """
     try:
+        _user_id = UUID(user_id) if user_id else None
+    except ValueError:
+        log.debug("Invalid user_id supplied: %s", user_id)
+        return []
+
+    try:
+        _iva_id = UUID(iva_id) if iva_id else None
+    except ValueError:
+        log.debug("Invalid iva_id supplied: %s", iva_id)
+        return []
+
+    try:
         return await repository.get_grants(
-            user_id=user_id,
-            iva_id=iva_id,
+            user_id=_user_id,
+            iva_id=_iva_id,
             dataset_id=dataset_id,
             valid=valid,
             auth_context=auth_context,

@@ -366,8 +366,7 @@ paths:
         required: false
         schema:
           anyOf:
-          - format: uuid4
-            type: string
+          - type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
@@ -377,8 +376,7 @@ paths:
         required: false
         schema:
           anyOf:
-          - format: uuid4
-            type: string
+          - type: string
           - type: 'null'
           description: The ID of the IVA
           title: Iva Id
@@ -455,7 +453,7 @@ paths:
   /access-requests:
     get:
       description: Endpoint used to get existing access requests
-      operationId: get_access_request
+      operationId: get_access_requests
       parameters:
       - description: The internal ID of the user
         in: query
@@ -463,8 +461,7 @@ paths:
         required: false
         schema:
           anyOf:
-          - format: uuid4
-            type: string
+          - type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
@@ -495,7 +492,7 @@ paths:
               schema:
                 items:
                   $ref: '#/components/schemas/AccessRequest'
-                title: Response 200 Get Access Request
+                title: Response 200 Get Access Requests
                 type: array
           description: Access requests have been fetched.
         '403':
