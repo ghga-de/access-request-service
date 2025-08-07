@@ -366,8 +366,7 @@ paths:
         required: false
         schema:
           anyOf:
-          - format: uuid4
-            type: string
+          - type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
@@ -377,8 +376,7 @@ paths:
         required: false
         schema:
           anyOf:
-          - format: uuid4
-            type: string
+          - type: string
           - type: 'null'
           description: The ID of the IVA
           title: Iva Id
@@ -432,7 +430,6 @@ paths:
         required: true
         schema:
           description: The ID of the data access grant to revoke
-          format: uuid4
           title: Grant Id
           type: string
       responses:
@@ -464,8 +461,7 @@ paths:
         required: false
         schema:
           anyOf:
-          - format: uuid4
-            type: string
+          - type: string
           - type: 'null'
           description: The internal ID of the user
           title: User Id
@@ -547,7 +543,6 @@ paths:
         required: true
         schema:
           description: ID of the access request
-          format: uuid4
           title: Access Request Id
           type: string
       responses:
@@ -583,7 +578,6 @@ paths:
         required: true
         schema:
           description: ID of the access request
-          format: uuid4
           title: Access Request Id
           type: string
       requestBody:

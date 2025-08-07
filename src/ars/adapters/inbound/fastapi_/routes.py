@@ -18,10 +18,10 @@
 
 import logging
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Path, Query, Response
 from fastapi.exceptions import HTTPException
-from pydantic import UUID4
 
 from ars.adapters.inbound.fastapi_ import dummies
 from ars.adapters.inbound.fastapi_.auth import StewardAuthContext, UserAuthContext
@@ -112,7 +112,7 @@ async def get_access_requests(
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     user_id: Annotated[
-        UUID4 | None,
+        str | None,
         Query(
             ...,
             alias="user_id",
@@ -138,8 +138,14 @@ async def get_access_requests(
 ) -> list[AccessRequest]:
     """Get access requests"""
     try:
+        _user_id = UUID(user_id) if user_id else None
+    except ValueError:
+        log.debug("Invalid user_id supplied: %s", user_id)
+        return []
+
+    try:
         return await repository.find_all(
-            user_id=user_id,
+            user_id=_user_id,
             dataset_id=dataset_id,
             status=status,
             auth_context=auth_context,
@@ -173,14 +179,20 @@ async def get_access_request(
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     access_request_id: Annotated[
-        UUID4,
+        str,
         Path(..., alias="access_request_id", description="ID of the access request"),
     ],
 ) -> AccessRequest:
     """Get access request"""
     try:
+        _access_request_id = UUID(access_request_id)
+    except ValueError as exc:
+        log.debug("Invalid access_request_id supplied: %s", access_request_id)
+        raise HTTPException(status_code=404, detail="Access request not found") from exc
+
+    try:
         return await repository.get(
-            access_request_id=access_request_id,
+            access_request_id=_access_request_id,
             auth_context=auth_context,
         )
     except repository.AccessRequestAuthorizationError as exc:
@@ -210,7 +222,7 @@ async def get_access_request(
 )
 async def patch_access_request(
     access_request_id: Annotated[
-        UUID4,
+        str,
         Path(..., alias="access_request_id", description="ID of the access request"),
     ],
     patch_data: AccessRequestPatchData,
@@ -219,8 +231,14 @@ async def patch_access_request(
 ) -> Response:
     """Set the status of an access request"""
     try:
+        _access_request_id = UUID(access_request_id)
+    except ValueError as exc:
+        log.debug("Invalid access_request_id supplied: %s", access_request_id)
+        raise HTTPException(status_code=404, detail="Access request not found") from exc
+
+    try:
         await repository.update(
-            access_request_id,
+            _access_request_id,
             patch_data=patch_data,
             auth_context=auth_context,
         )
@@ -263,7 +281,7 @@ async def get_access_grants(  # noqa: PLR0913
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     user_id: Annotated[
-        UUID4 | None,
+        str | None,
         Query(
             ...,
             alias="user_id",
@@ -271,7 +289,7 @@ async def get_access_grants(  # noqa: PLR0913
         ),
     ] = None,
     iva_id: Annotated[
-        UUID4 | None,
+        str | None,
         Query(
             ...,
             alias="iva_id",
@@ -301,9 +319,21 @@ async def get_access_grants(  # noqa: PLR0913
     and by whether the grant is currently valid or not.
     """
     try:
+        _user_id = UUID(user_id) if user_id else None
+    except ValueError:
+        log.debug("Invalid user_id supplied: %s", user_id)
+        return []
+
+    try:
+        _iva_id = UUID(iva_id) if iva_id else None
+    except ValueError:
+        log.debug("Invalid iva_id supplied: %s", iva_id)
+        return []
+
+    try:
         return await repository.get_grants(
-            user_id=user_id,
-            iva_id=iva_id,
+            user_id=_user_id,
+            iva_id=_iva_id,
             dataset_id=dataset_id,
             valid=valid,
             auth_context=auth_context,
@@ -334,7 +364,7 @@ async def get_access_grants(  # noqa: PLR0913
 )
 async def revoke_access_grant(
     grant_id: Annotated[
-        UUID4,
+        str,
         Path(
             ...,
             alias="grant_id",
@@ -346,8 +376,14 @@ async def revoke_access_grant(
 ) -> Response:
     """Revoke an existing data access grant."""
     try:
+        _grant_id = UUID(grant_id)
+    except ValueError as exc:
+        log.debug("Invalid grant_id supplied: %s", grant_id)
+        raise HTTPException(status_code=404, detail="Access grant not found") from exc
+
+    try:
         await repository.revoke_grant(
-            grant_id,
+            _grant_id,
             auth_context=auth_context,
         )
     except repository.AccessRequestAuthorizationError as exc:
