@@ -315,36 +315,6 @@ components:
       - pending
       title: AccessRequestStatus
       type: string
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          title: Detail
-          type: array
-      title: HTTPValidationError
-      type: object
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          title: Location
-          type: array
-        msg:
-          title: Message
-          type: string
-        type:
-          title: Error Type
-          type: string
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
-      type: object
   securitySchemes:
     HTTPBearer:
       scheme: bearer
@@ -443,11 +413,7 @@ paths:
         '404':
           description: The data access grant was not found.
         '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
+          description: Validation error in submitted data.
       security:
       - HTTPBearer: []
       summary: Revoke a data access grant
@@ -562,11 +528,7 @@ paths:
         '404':
           description: Access request does not exist.
         '422':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-          description: Validation Error
+          description: Validation error in submitted data.
       security:
       - HTTPBearer: []
       summary: Get access request

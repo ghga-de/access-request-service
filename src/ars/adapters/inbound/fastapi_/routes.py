@@ -166,6 +166,7 @@ async def get_access_requests(
         },
         403: {"description": "Not authorized to get access request."},
         404: {"description": "Access request does not exist."},
+        422: {"description": "Validation error in submitted data."},
     },
     status_code=200,
 )
@@ -329,6 +330,7 @@ async def get_access_grants(  # noqa: PLR0913
         },
         403: {"description": "Not authorized to revoke a data access grant."},
         404: {"description": "The data access grant was not found."},
+        422: {"description": "Validation error in submitted data."},
     },
     status_code=204,
 )
