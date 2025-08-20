@@ -219,6 +219,24 @@ async def test_v3_migration(mongodb: MongoDbFixture):
             request["status_changed"] = date_reverted
         expected_reverted_requests.append(request)
 
+    # Include a deleted outbox event for testing:
+    deleted_request: dict[str, Any] = {
+        "_id": "c2b02269-4e93-4fb0-ae94-24231198228a",
+        "__metadata__": {
+            "correlation_id": "afa2451d-2a58-4c37-af11-9ab9012ba344",
+            "published": True,
+            "deleted": True,
+        },
+    }
+    collection.insert_one(deleted_request)
+    expected_reverted_requests.append(deleted_request)
+    migrated_deleted_doc = deepcopy(deleted_request)
+    migrated_deleted_doc["_id"] = UUID("c2b02269-4e93-4fb0-ae94-24231198228a")
+    migrated_deleted_doc["__metadata__"]["correlation_id"] = UUID(
+        "afa2451d-2a58-4c37-af11-9ab9012ba344"
+    )
+    expected_migrated_requests.append(migrated_deleted_doc)
+
     # Now run the migration
     await run_db_migrations(config=migration_config, target_version=3)
 
