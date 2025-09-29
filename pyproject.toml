@@ -24,11 +24,11 @@ name = "ars"
 version = "6.1.0"
 description = "Access Request Service"
 dependencies = [
-    "ghga-event-schemas ~= 10.0.0",
-    "ghga-service-commons[api,auth] >= 5, <6",
-    "hexkit[mongodb,akafka] >= 6, <8",
+    "ghga-event-schemas ~= 10.1.2",
+    "ghga-service-commons[api,auth] >= 5.1, <6",
+    "hexkit[mongodb,akafka] >= 7.1, <8",
     "httpx >= 0.28",
-    "typer >= 0.16",
+    "typer >= 0.19",
 ]
 
 [project.license]
