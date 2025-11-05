@@ -21,11 +21,11 @@ classifiers = [
     "Intended Audience :: Developers",
 ]
 name = "ars"
-version = "6.1.1"
+version = "6.1.2"
 description = "Access Request Service"
 dependencies = [
     "ghga-event-schemas ~= 10.1.2",
-    "ghga-service-commons[api,auth] >= 5.1, <6",
+    "ghga-service-commons[api,auth] >= 5.2, <6",
     "hexkit[mongodb,akafka] >= 7.1, <8",
     "httpx >= 0.28",
     "typer >= 0.20",

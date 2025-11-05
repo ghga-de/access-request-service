@@ -33,6 +33,12 @@ aiokafka==0.12.0 \
     # via
     #   -c lock/requirements-dev.txt
     #   hexkit
+annotated-doc==0.0.3 \
+    --hash=sha256:348ec6664a76f1fd3be81f43dffbee4c7e8ce931ba71ec67cc7f4ade7fbbb580 \
+    --hash=sha256:e18370014c70187422c33e945053ff4c286f453a984eba84d0dbfa0c935adeda
+    # via
+    #   -c lock/requirements-dev.txt
+    #   fastapi
 annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \
     --hash=sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89
@@ -370,9 +376,9 @@ email-validator==2.3.0 \
     # via
     #   -c lock/requirements-dev.txt
     #   pydantic
-fastapi==0.117.1 \
-    --hash=sha256:33c51a0d21cab2b9722d4e56dbb9316f3687155be6b276191790d8da03507552 \
-    --hash=sha256:fb2d42082d22b185f904ca0ecad2e195b851030bd6c5e4c032d1c981240c631a
+fastapi==0.120.4 \
+    --hash=sha256:2d856bc847893ca4d77896d4504ffdec0fb04312b705065fca9104428eca3868 \
+    --hash=sha256:9bdf192308676480d3593e10fd05094e56d6fdc7d9283db26053d8104d5f82a0
     # via
     #   -c lock/requirements-dev.txt
     #   ghga-service-commons
@@ -382,9 +388,9 @@ ghga-event-schemas==10.1.2 \
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
-ghga-service-commons==5.1.0 \
-    --hash=sha256:7a058627ae2909999e1e3fb36a6517a93162fc811fc0572deb476c2b069300f2 \
-    --hash=sha256:da1031c8779fbfe43e708698fb4c315987b1b4f4ae50a04c5feaf53fcb1df912
+ghga-service-commons==5.2.0 \
+    --hash=sha256:834a26606bc391d228f6ffd81e4bed4fb882e72e957fc000ba2afc59cc03d18f \
+    --hash=sha256:a21b492fdda16f74c2a5696010b2fa79dc4050679cad9a4915567cb0b94a4217
     # via
     #   -c lock/requirements-dev.txt
     #   ars (pyproject.toml)
@@ -975,9 +981,9 @@ sniffio==1.3.1 \
     # via
     #   -c lock/requirements-dev.txt
     #   anyio
-starlette==0.48.0 \
-    --hash=sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659 \
-    --hash=sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46
+starlette==0.49.3 \
+    --hash=sha256:1c14546f299b5901a1ea0e34410575bc33bbd741377a10484a54445588d00284 \
+    --hash=sha256:b579b99715fdc2980cf88c8ec96d3bf1ce16f5a8051a7c2b84ef9b1cdecaea2f
     # via
     #   -c lock/requirements-dev.txt
     #   fastapi
