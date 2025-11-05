@@ -31,6 +31,10 @@ aiokafka==0.12.0 \
     --hash=sha256:fdbd69ec70eea4a8dfaa5c35ff4852e90e1277fcc426b9380f0b499b77f13b16 \
     --hash=sha256:ff63689cafcd6dd642a15de75b7ae121071d6162cccba16d091bcb28b3886307
     # via hexkit
+annotated-doc==0.0.3 \
+    --hash=sha256:348ec6664a76f1fd3be81f43dffbee4c7e8ce931ba71ec67cc7f4ade7fbbb580 \
+    --hash=sha256:e18370014c70187422c33e945053ff4c286f453a984eba84d0dbfa0c935adeda
+    # via fastapi
 annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \
     --hash=sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89
@@ -582,9 +586,9 @@ email-validator==2.3.0 \
     --hash=sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4 \
     --hash=sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426
     # via pydantic
-fastapi==0.117.1 \
-    --hash=sha256:33c51a0d21cab2b9722d4e56dbb9316f3687155be6b276191790d8da03507552 \
-    --hash=sha256:fb2d42082d22b185f904ca0ecad2e195b851030bd6c5e4c032d1c981240c631a
+fastapi==0.120.4 \
+    --hash=sha256:2d856bc847893ca4d77896d4504ffdec0fb04312b705065fca9104428eca3868 \
+    --hash=sha256:9bdf192308676480d3593e10fd05094e56d6fdc7d9283db26053d8104d5f82a0
     # via ghga-service-commons
 filelock==3.20.0 \
     --hash=sha256:339b4732ffda5cd79b13f4e2711a31b0365ce445d95d243bb996273d072546a2 \
@@ -594,9 +598,9 @@ ghga-event-schemas==10.1.2 \
     --hash=sha256:707ab33d4b3b9259435f52495838ecc689511be91bfee5f1af34cf128e9670e0 \
     --hash=sha256:e787c70c2019574ceca12599ba2e96d3c25cfd24b3a1eaa9a9945455dd41fadc
     # via ars (pyproject.toml)
-ghga-service-commons==5.1.0 \
-    --hash=sha256:7a058627ae2909999e1e3fb36a6517a93162fc811fc0572deb476c2b069300f2 \
-    --hash=sha256:da1031c8779fbfe43e708698fb4c315987b1b4f4ae50a04c5feaf53fcb1df912
+ghga-service-commons==5.2.0 \
+    --hash=sha256:834a26606bc391d228f6ffd81e4bed4fb882e72e957fc000ba2afc59cc03d18f \
+    --hash=sha256:a21b492fdda16f74c2a5696010b2fa79dc4050679cad9a4915567cb0b94a4217
     # via
     #   ars (pyproject.toml)
     #   ghga-event-schemas
@@ -711,9 +715,9 @@ logot==1.5.1 \
     --hash=sha256:3a48e4c9e09ee6fd1e3f2032319b2038dc471d655fcce268b05d97d0531d21c1 \
     --hash=sha256:fbf83531e92059f3e6783850d355521da333ddee94a445aecc5867eb8a0db54f
     # via -r lock/requirements-dev-template.in
-markdown==3.9 \
-    --hash=sha256:9f4d91ed810864ea88a6f32c07ba8bee1346c0cc1f6b1f9f6c822f2a9667d280 \
-    --hash=sha256:d2900fe1782bd33bdbbd56859defef70c2e78fc46668f8eb9df3128138f2cb6a
+markdown==3.10 \
+    --hash=sha256:37062d4f2aa4b2b6b32aefb80faa300f82cc790cb949a35b8caede34f2b68c0e \
+    --hash=sha256:b5b99d6951e2e4948d939255596523444c0e677c669700b1d17aa4a8a464cb7c
     # via jsonschema2md
 markdown-it-py==4.0.0 \
     --hash=sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147 \
@@ -1296,9 +1300,9 @@ sniffio==1.3.1 \
     --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
     --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
     # via anyio
-starlette==0.48.0 \
-    --hash=sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659 \
-    --hash=sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46
+starlette==0.49.3 \
+    --hash=sha256:1c14546f299b5901a1ea0e34410575bc33bbd741377a10484a54445588d00284 \
+    --hash=sha256:b579b99715fdc2980cf88c8ec96d3bf1ce16f5a8051a7c2b84ef9b1cdecaea2f
     # via fastapi
 testcontainers==4.12.0 \
     --hash=sha256:13ee89cae995e643f225665aad8b200b25c4f219944a6f9c0b03249ec3f31b8d \
