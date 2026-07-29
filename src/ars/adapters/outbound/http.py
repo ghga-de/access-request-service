@@ -21,7 +21,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 from uuid import UUID
 
-import httpx
+import httpx2
 from ghga_service_commons.utils.utc_dates import UTCDatetime
 from pydantic import UUID4, Field, ValidationError
 from pydantic_settings import BaseSettings
@@ -51,7 +51,7 @@ class AccessGrantsAdapter(AccessGrantsPort):
     which can be accessed only internally for security reasons.
     """
 
-    def __init__(self, *, config: AccessGrantsConfig, client: httpx.AsyncClient):
+    def __init__(self, *, config: AccessGrantsConfig, client: httpx2.AsyncClient):
         """Configure the access grant adapter."""
         self._url = config.download_access_url
         self._client = client
@@ -62,7 +62,7 @@ class AccessGrantsAdapter(AccessGrantsPort):
         cls, *, config: AccessGrantsConfig
     ) -> AsyncGenerator["AccessGrantsAdapter"]:
         """Setup AccessGrantsAdapter with the given config."""
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+        async with httpx2.AsyncClient(timeout=TIMEOUT) as client:
             yield cls(config=config, client=client)
 
     async def grant_download_access(
@@ -92,9 +92,9 @@ class AccessGrantsAdapter(AccessGrantsPort):
                 content=validity.model_dump_json(),
                 headers={"Content-Type": "application/json"},
             )
-        except httpx.RequestError as error:
+        except httpx2.RequestError as error:
             raise self.AccessGrantsError(f"HTTP request error: {error}") from error
-        if response.status_code != httpx.codes.CREATED:
+        if response.status_code != httpx2.codes.CREATED:
             raise self.AccessGrantsError(
                 f"Unexpected response status code {response.status_code}"
             )
@@ -132,9 +132,9 @@ class AccessGrantsAdapter(AccessGrantsPort):
             params["valid"] = str(valid).lower()
         try:
             response = await self._client.get(url, params=params)
-        except httpx.RequestError as error:
+        except httpx2.RequestError as error:
             raise self.AccessGrantsError(f"HTTP request error: {error}") from error
-        if response.status_code != httpx.codes.OK:
+        if response.status_code != httpx2.codes.OK:
             raise self.AccessGrantsError(
                 f"Unexpected response status code {response.status_code}"
             )
@@ -159,11 +159,11 @@ class AccessGrantsAdapter(AccessGrantsPort):
         url = f"{self._url}/grants/{grant_id}"
         try:
             response = await self._client.delete(url)
-        except httpx.RequestError as error:
+        except httpx2.RequestError as error:
             raise self.AccessGrantsError(f"HTTP request error: {error}") from error
-        if response.status_code == httpx.codes.NOT_FOUND:
+        if response.status_code == httpx2.codes.NOT_FOUND:
             raise self.AccessGrantNotFoundError(f"Grant with ID {grant_id} not found")
-        if response.status_code != httpx.codes.NO_CONTENT:
+        if response.status_code != httpx2.codes.NO_CONTENT:
             raise self.AccessGrantsError(
                 f"Unexpected response status code {response.status_code}"
             )
