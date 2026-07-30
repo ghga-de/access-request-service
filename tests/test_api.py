@@ -21,13 +21,12 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest
-import respx
 from hexkit.custom_types import JsonObject
 from hexkit.providers.mongodb.testutils import MongoDbFixture
 from hexkit.utils import now_utc_ms_prec
 
 from tests.fixtures import RestFixture
-from tests.test_access_grants import GRANT_ID
+from tests.fixtures.access_grants import AccessGrantsMock
 
 pytestmark = pytest.mark.asyncio()
 
@@ -466,14 +465,9 @@ async def test_patch_access_request_status(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
 ):
     """Test that data stewards can change the status of access requests."""
-    # mock setting the access grant
-    httpx2_mock.post(
-        f"http://access/users/{ID_OF_JOHN_DOE}/ivas/{SOME_IVA_ID}/datasets/DS001"
-    ).respond(201, json={"id": str(GRANT_ID)})
-
     client = rest.rest_client
     # create access request as user
     response = await client.post(
@@ -495,7 +489,11 @@ async def test_patch_access_request_status(
         assert response.status_code == 204
 
     # check that access has been granted
-    grant_request = httpx2_mock.calls.last.request
+    grant_request = access_grants.last_request
+    assert grant_request.method == "POST"
+    assert str(grant_request.url) == (
+        f"http://access/users/{ID_OF_JOHN_DOE}/ivas/{SOME_IVA_ID}/datasets/DS001"
+    )
     validity = json.loads(grant_request.content)
     # validity period may start a bit later because integration tests can be slow
     assert_same_datetime(validity["valid_from"], CREATION_DATA["access_starts"], 300)
@@ -561,14 +559,10 @@ async def test_patch_access_request_with_another_iva(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
 ):
     """Test that data stewards can change the status and IVA of access requests."""
-    # mock setting the access grant
     another_iva = str(uuid4())
-    httpx2_mock.post(
-        f"http://access/users/{ID_OF_JOHN_DOE}/ivas/{another_iva}/datasets/DS001"
-    ).respond(201, json={"id": str(GRANT_ID)})
 
     client = rest.rest_client
     # create access request as user
@@ -586,6 +580,13 @@ async def test_patch_access_request_with_another_iva(
         headers=auth_headers_steward,
     )
     assert response.status_code == 204
+
+    # check that access has been granted using the other IVA
+    grant_request = access_grants.last_request
+    assert grant_request.method == "POST"
+    assert str(grant_request.url) == (
+        f"http://access/users/{ID_OF_JOHN_DOE}/ivas/{another_iva}/datasets/DS001"
+    )
 
     # get request back as user
     response = await client.get("/access-requests", headers=auth_headers_doe)
@@ -791,14 +792,8 @@ async def test_patch_access_duration_for_allowed_request(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
-    httpx2_mock: respx.Router,
 ):
     """Test that data stewards cannot change the duration of an allowed request."""
-    # mock setting the access grant
-    httpx2_mock.post(
-        f"http://access/users/{ID_OF_JOHN_DOE}/ivas/{SOME_IVA_ID}/datasets/DS001"
-    ).respond(201, json={"id": str(GRANT_ID)})
-
     client = rest.rest_client
     # create access request as user
     response = await client.post(
@@ -870,14 +865,10 @@ async def test_patch_everything_when_allowing_request(
     rest: RestFixture,
     auth_headers_doe: dict[str, str],
     auth_headers_steward: dict[str, str],
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
 ):
     """Test that data stewards can modify multiple fields when allowing a request."""
-    # mock setting the access grant
     new_iva = str(uuid4())
-    httpx2_mock.post(
-        f"http://access/users/{ID_OF_JOHN_DOE}/ivas/{new_iva}/datasets/DS001"
-    ).respond(201, json={"id": str(GRANT_ID)})
 
     client = rest.rest_client
     # create access request as user
@@ -906,6 +897,13 @@ async def test_patch_everything_when_allowing_request(
         headers=auth_headers_steward,
     )
     assert response.status_code == 204
+
+    # check that access has been granted using the new IVA
+    grant_request = access_grants.last_request
+    assert grant_request.method == "POST"
+    assert str(grant_request.url) == (
+        f"http://access/users/{ID_OF_JOHN_DOE}/ivas/{new_iva}/datasets/DS001"
+    )
 
     # get request as data steward
     response = await client.get("/access-requests", headers=auth_headers_steward)
@@ -1033,7 +1031,7 @@ async def test_patch_ticket_id_and_notes(
 
 async def test_get_own_access_grants(
     rest: RestFixture,
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
     auth_headers_doe: dict[str, str],
 ):
     """Test that users can get their own access grants."""
@@ -1042,9 +1040,7 @@ async def test_get_own_access_grants(
     user_id = GRANT_DATA["user_id"]
 
     # mock getting the access grants of the user
-    httpx2_mock.get(f"http://access/grants?user_id={user_id}").respond(
-        200, json=[BASE_GRANT_DATA]
-    )
+    access_grants.grants = [BASE_GRANT_DATA]
 
     # get own access grants as user without specifying a user ID
     response = await client.get("/access-grants", headers=auth_headers_doe)
@@ -1052,6 +1048,7 @@ async def test_get_own_access_grants(
     assert response.status_code == 200
     grants = response.json()
     assert grants == [GRANT_DATA]
+    assert dict(access_grants.last_request.url.params) == {"user_id": user_id}
 
     # get own access grants specifying a user ID
     response = await client.get(
@@ -1061,11 +1058,12 @@ async def test_get_own_access_grants(
     assert response.status_code == 200
     grants = response.json()
     assert grants == [GRANT_DATA]
+    assert dict(access_grants.last_request.url.params) == {"user_id": user_id}
 
 
 async def test_get_other_access_grants(
     rest: RestFixture,
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
     auth_headers_steward: dict[str, str],
 ):
     """Test that data stewards can get access grants of other users."""
@@ -1073,10 +1071,8 @@ async def test_get_other_access_grants(
 
     user_id = GRANT_DATA["user_id"]
 
-    # mock getting the access grant of the user
-    httpx2_mock.get(f"http://access/grants?user_id={user_id}").respond(
-        200, json=[BASE_GRANT_DATA]
-    )
+    # mock getting the access grants
+    access_grants.grants = [BASE_GRANT_DATA]
 
     # get access grants of a specific user as data steward
     response = await client.get(
@@ -1086,9 +1082,7 @@ async def test_get_other_access_grants(
     assert response.status_code == 200
     grants = response.json()
     assert grants == [GRANT_DATA]
-
-    # mock getting the access grants of all users
-    httpx2_mock.get("http://access/grants").respond(200, json=[BASE_GRANT_DATA])
+    assert dict(access_grants.last_request.url.params) == {"user_id": user_id}
 
     # get access grants of all users
     response = await client.get("/access-grants", headers=auth_headers_steward)
@@ -1096,11 +1090,12 @@ async def test_get_other_access_grants(
     assert response.status_code == 200
     grants = response.json()
     assert grants == [GRANT_DATA]
+    assert not access_grants.last_request.url.params
 
 
 async def test_get_filtered_access_grants(
     rest: RestFixture,
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
     auth_headers_steward: dict[str, str],
 ):
     """Test that data stewards can get a filtered list of access grants."""
@@ -1113,9 +1108,7 @@ async def test_get_filtered_access_grants(
     query = f"user_id={user_id}&iva_id={iva_id}&dataset_id={dataset_id}&valid=true"
 
     # mock getting the filtered access grant list
-    httpx2_mock.get(f"http://access/grants?{query}").respond(
-        200, json=[BASE_GRANT_DATA]
-    )
+    access_grants.grants = [BASE_GRANT_DATA]
 
     # get filtered access grant list
     response = await client.get(
@@ -1126,6 +1119,12 @@ async def test_get_filtered_access_grants(
     assert response.status_code == 200
     grants = response.json()
     assert grants == [GRANT_DATA]
+    assert dict(access_grants.last_request.url.params) == {
+        "user_id": user_id,
+        "iva_id": iva_id,
+        "dataset_id": dataset_id,
+        "valid": "true",
+    }
 
 
 async def test_get_access_grants_unauthorized(
@@ -1147,12 +1146,14 @@ async def test_get_access_grants_unauthorized(
 
 
 async def test_get_access_grants_with_invalid_claims(
-    rest: RestFixture, httpx2_mock: respx.Router, auth_headers_steward: dict[str, str]
+    rest: RestFixture,
+    access_grants: AccessGrantsMock,
+    auth_headers_steward: dict[str, str],
 ):
     """Test that getting access grants when claims repository returns invalid data."""
     client = rest.rest_client
 
-    httpx2_mock.get("http://access/grants").respond(200, json={"foo": "bar"})
+    access_grants.grants = {"foo": "bar"}
 
     # test getting access grants when there is a downstream schema mismatch
     response = await client.get(
@@ -1164,14 +1165,16 @@ async def test_get_access_grants_with_invalid_claims(
 
 
 async def test_get_access_grants_with_missing_dataset(
-    rest: RestFixture, httpx2_mock: respx.Router, auth_headers_steward: dict[str, str]
+    rest: RestFixture,
+    access_grants: AccessGrantsMock,
+    auth_headers_steward: dict[str, str],
 ):
     """Test that if a grant is missing its dataset we get an error."""
     client = rest.rest_client
 
-    httpx2_mock.get("http://access/grants").respond(
-        200, json=[{**BASE_GRANT_DATA, "dataset_id": "non-existing-dataset-id"}]
-    )
+    access_grants.grants = [
+        {**BASE_GRANT_DATA, "dataset_id": "non-existing-dataset-id"}
+    ]
 
     # test getting access grants when the corresponding dataset is not found
     # (this should not crash the service, but log and return an error
@@ -1186,7 +1189,7 @@ async def test_get_access_grants_with_missing_dataset(
 
 async def test_revoke_existing_access_grant(
     rest: RestFixture,
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
     auth_headers_steward: dict[str, str],
 ):
     """Test that an existing access grant can be revoked."""
@@ -1194,10 +1197,7 @@ async def test_revoke_existing_access_grant(
 
     grant_id = GRANT_DATA["id"]
 
-    # mock revoking the access grant
-    httpx2_mock.delete(f"http://access/grants/{grant_id}").respond(204)
-
-    # get filtered access grant list
+    # revoke the access grant
     response = await client.delete(
         f"/access-grants/{grant_id}",
         headers=auth_headers_steward,
@@ -1206,10 +1206,15 @@ async def test_revoke_existing_access_grant(
     assert response.status_code == 204
     assert not response.content
 
+    # check that the grant has been revoked upstream
+    revoke_request = access_grants.last_request
+    assert revoke_request.method == "DELETE"
+    assert str(revoke_request.url) == f"http://access/grants/{grant_id}"
+
 
 async def test_revoke_non_existing_access_grant(
     rest: RestFixture,
-    httpx2_mock: respx.Router,
+    access_grants: AccessGrantsMock,
     auth_headers_steward: dict[str, str],
 ):
     """Test that we get the proper error when revoking a non-existent access grant."""
@@ -1217,10 +1222,9 @@ async def test_revoke_non_existing_access_grant(
 
     grant_id = GRANT_DATA["id"]
 
-    # mock revoking the access grant
-    httpx2_mock.delete(f"http://access/grants/{grant_id}").respond(404)
+    # mock revoking an access grant that does not exist
+    access_grants.revoke_grant_status_code = 404
 
-    # get filtered access grant list
     response = await client.delete(
         f"/access-grants/{grant_id}",
         headers=auth_headers_steward,

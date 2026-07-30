@@ -265,7 +265,7 @@ async def patch_access_request(
     },
     status_code=200,
 )
-async def get_access_grants(  # noqa: PLR0913
+async def get_access_grants(  # noqa: PLR0913, PLR0917
     repository: dummies.AccessRequestRepoDummy,
     auth_context: UserAuthContext,
     user_id: Annotated[

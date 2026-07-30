@@ -59,10 +59,17 @@ class AccessGrantsAdapter(AccessGrantsPort):
     @classmethod
     @asynccontextmanager
     async def construct(
-        cls, *, config: AccessGrantsConfig
+        cls,
+        *,
+        config: AccessGrantsConfig,
+        transport: httpx2.AsyncBaseTransport | None = None,
     ) -> AsyncGenerator["AccessGrantsAdapter"]:
-        """Setup AccessGrantsAdapter with the given config."""
-        async with httpx2.AsyncClient(timeout=TIMEOUT) as client:
+        """Setup AccessGrantsAdapter with the given config.
+
+        A custom transport can be passed in to intercept the outgoing requests,
+        which is used to mock the download access API in tests.
+        """
+        async with httpx2.AsyncClient(timeout=TIMEOUT, transport=transport) as client:
             yield cls(config=config, client=client)
 
     async def grant_download_access(
